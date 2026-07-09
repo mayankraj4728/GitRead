@@ -1,0 +1,33 @@
+# Local dev dependencies for GitRead: PostgreSQL + Redis.
+#   docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gitread-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gitread
+      POSTGRES_PASSWORD: gitread
+      POSTGRES_DB: gitread
+    ports:
+      - "5432:5432"
+    volumes:
+      - gitread_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gitread"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: gitread-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - gitread_redisdata:/data
+
+volumes:
+  gitread_pgdata:
+  gitread_redisdata:

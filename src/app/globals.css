@@ -1,0 +1,588 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Design tokens ──────────────────────────────────────────────
+   Calm, book-like identity. Warm paper light mode, deep ink dark
+   mode, a single refined indigo accent. */
+:root {
+  --background: oklch(0.995 0.003 85);
+  --foreground: oklch(0.22 0.01 60);
+  --muted: oklch(0.97 0.004 85);
+  --muted-foreground: oklch(0.53 0.01 65);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.01 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.01 60);
+  --border: oklch(0.92 0.005 80);
+  --input: oklch(0.92 0.005 80);
+  --ring: oklch(0.55 0.14 265);
+  --accent: oklch(0.55 0.14 265);
+  --accent-foreground: oklch(0.99 0.005 265);
+  --accent-muted: oklch(0.95 0.03 265);
+  --surface: oklch(0.985 0.004 85);
+
+  /* Code surfaces — deliberately distinct from the page background. */
+  --code-bg: oklch(0.966 0.004 250);
+  --code-header: oklch(0.94 0.005 250);
+  --code-border: oklch(0.9 0.006 250);
+
+  --success: oklch(0.6 0.13 150);
+  --warning: oklch(0.72 0.15 75);
+  --danger: oklch(0.58 0.19 25);
+  --info: oklch(0.6 0.12 240);
+
+  --radius: 0.7rem;
+
+  --font-reading: var(--font-body);
+  --content-width: 46rem;
+}
+
+.dark {
+  --background: oklch(0.19 0.01 265);
+  --foreground: oklch(0.9 0.008 80);
+  --muted: oklch(0.24 0.012 265);
+  --muted-foreground: oklch(0.65 0.012 80);
+  --card: oklch(0.22 0.012 265);
+  --card-foreground: oklch(0.9 0.008 80);
+  --popover: oklch(0.22 0.012 265);
+  --popover-foreground: oklch(0.9 0.008 80);
+  --border: oklch(0.3 0.012 265);
+  --input: oklch(0.3 0.012 265);
+  --ring: oklch(0.7 0.13 265);
+  --accent: oklch(0.72 0.13 265);
+  --accent-foreground: oklch(0.18 0.02 265);
+  --accent-muted: oklch(0.32 0.05 265);
+  --surface: oklch(0.21 0.012 265);
+
+  /* Code panel sits clearly above the deep-ink page (0.19). */
+  --code-bg: oklch(0.255 0.014 265);
+  --code-header: oklch(0.3 0.016 265);
+  --code-border: oklch(0.35 0.014 265);
+
+  --success: oklch(0.72 0.13 150);
+  --warning: oklch(0.8 0.14 75);
+  --danger: oklch(0.68 0.17 25);
+  --info: oklch(0.7 0.12 240);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-muted: var(--accent-muted);
+  --color-surface: var(--surface);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-reading-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono-src), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Smooth theme transitions on color-bearing properties only. */
+  body,
+  .theme-transition,
+  .theme-transition * {
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      color 0.2s ease;
+  }
+  ::selection {
+    background: var(--color-accent-muted);
+    color: var(--color-foreground);
+  }
+  /* Refined scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+    background-clip: content-box;
+  }
+}
+
+/* Anchor offset so sticky headers don't cover heading targets. */
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: 6rem;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   READING TYPOGRAPHY — the core of GitRead
+   ════════════════════════════════════════════════════════════════ */
+.prose-reader {
+  --measure: 46rem;
+  max-width: var(--measure);
+  font-family: var(--font-serif);
+  font-size: 1.075rem;
+  line-height: 1.8;
+  color: var(--color-foreground);
+  animation: fade-in 0.4s ease both;
+}
+
+.prose-reader > *:first-child {
+  margin-top: 0;
+}
+
+.prose-reader p {
+  margin: 1.25em 0;
+  hyphens: auto;
+}
+
+.prose-reader :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-sans);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--color-foreground);
+  scroll-margin-top: 6rem;
+}
+.prose-reader h1 {
+  font-size: 2.35rem;
+  margin: 0 0 0.6em;
+  letter-spacing: -0.03em;
+}
+.prose-reader h2 {
+  font-size: 1.7rem;
+  margin: 2.2em 0 0.7em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border);
+}
+.prose-reader h3 {
+  font-size: 1.32rem;
+  margin: 1.9em 0 0.6em;
+}
+.prose-reader h4 {
+  font-size: 1.1rem;
+  margin: 1.6em 0 0.5em;
+}
+
+/* Heading anchors (rehype-autolink-headings, behavior: wrap) */
+.prose-reader .heading-anchor {
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+}
+.prose-reader .heading-anchor:hover::before {
+  content: "#";
+  position: absolute;
+  left: -1.1em;
+  color: var(--color-accent);
+  font-weight: 400;
+}
+
+.prose-reader a:not(.heading-anchor) {
+  color: var(--color-accent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in oklch, var(--color-accent) 35%, transparent);
+  transition: border-color 0.15s;
+}
+.prose-reader a:not(.heading-anchor):hover {
+  border-bottom-color: var(--color-accent);
+}
+
+.prose-reader :where(ul, ol) {
+  margin: 1.2em 0;
+  padding-left: 1.6em;
+}
+.prose-reader li {
+  margin: 0.4em 0;
+}
+.prose-reader li::marker {
+  color: var(--color-muted-foreground);
+}
+.prose-reader ul {
+  list-style: disc;
+}
+.prose-reader ol {
+  list-style: decimal;
+}
+/* GFM task lists */
+.prose-reader li:has(> input[type="checkbox"]) {
+  list-style: none;
+  margin-left: -1.4em;
+}
+.prose-reader input[type="checkbox"] {
+  margin-right: 0.55em;
+  accent-color: var(--color-accent);
+  width: 1rem;
+  height: 1rem;
+  vertical-align: -0.1em;
+}
+
+.prose-reader blockquote {
+  margin: 1.5em 0;
+  padding: 0.2em 1.2em;
+  border-left: 3px solid var(--color-accent);
+  color: var(--color-muted-foreground);
+  font-style: italic;
+}
+.prose-reader blockquote p {
+  margin: 0.6em 0;
+}
+
+.prose-reader hr {
+  margin: 2.5em 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Inline code (not inside a highlighted block) */
+.prose-reader :not(pre) > code {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.86em;
+  background: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  padding: 0.14em 0.4em;
+  word-break: break-word;
+}
+
+.prose-reader kbd {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8em;
+  background: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 0.1em 0.45em;
+}
+
+/* Tables */
+.prose-reader table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.6em 0;
+  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  display: block;
+  overflow-x: auto;
+}
+.prose-reader thead {
+  border-bottom: 2px solid var(--color-border);
+}
+.prose-reader th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.7em 1em;
+}
+.prose-reader td {
+  padding: 0.7em 1em;
+  border-top: 1px solid var(--color-border);
+}
+.prose-reader tbody tr:hover {
+  background: var(--color-muted);
+}
+
+/* Images & figures */
+.prose-reader .md-image {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  cursor: zoom-in;
+  margin: 0 auto;
+  max-width: 100%;
+  transition: opacity 0.2s;
+}
+.prose-reader .md-image:hover {
+  opacity: 0.92;
+}
+.prose-reader .md-figure {
+  margin: 1.8em 0;
+  text-align: center;
+}
+.prose-reader .md-figure figcaption {
+  margin-top: 0.7em;
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  color: var(--color-muted-foreground);
+}
+
+/* KaTeX: allow horizontal scroll on long display math */
+.prose-reader .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+
+/* ── GitHub alerts / admonitions ─────────────────────────────── */
+.prose-reader .gh-alert {
+  margin: 1.5em 0;
+  padding: 0.9em 1.1em;
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--gh-c, var(--color-accent));
+  background: color-mix(in oklch, var(--gh-c, var(--color-accent)) 8%, var(--color-card));
+  font-family: var(--font-sans);
+  font-size: 0.96rem;
+}
+.prose-reader .gh-alert p {
+  margin: 0.4em 0;
+}
+.prose-reader .gh-alert-title {
+  font-weight: 650;
+  color: var(--gh-c, var(--color-accent));
+  text-transform: capitalize;
+  margin: 0 0 0.3em !important;
+}
+.prose-reader .gh-alert-note {
+  --gh-c: var(--color-info);
+}
+.prose-reader .gh-alert-tip {
+  --gh-c: var(--color-success);
+}
+.prose-reader .gh-alert-important {
+  --gh-c: var(--color-accent);
+}
+.prose-reader .gh-alert-warning {
+  --gh-c: var(--color-warning);
+}
+.prose-reader .gh-alert-caution {
+  --gh-c: var(--color-danger);
+}
+
+/* ── Code blocks ─────────────────────────────────────────────── */
+/* Bare code block (works even before/without JS enhancement): a clearly
+   shaded, bordered, rounded box distinct from the page background. */
+.prose-reader pre.shiki {
+  margin: 1.7em 0;
+  padding: 1.1em 1.3em;
+  background: var(--code-bg) !important;
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  tab-size: 2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+/* Hard guarantee: highlighted code always uses a real monospace font. */
+.prose-reader pre.shiki,
+.prose-reader pre.shiki code,
+.prose-reader pre.shiki span {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-ligatures: none;
+}
+
+/* Enhanced block: the wrapper owns the box; the inner <pre> goes flush. */
+.code-block {
+  margin: 1.7em 0;
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--code-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.dark .code-block {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5em 0.85em;
+  border-bottom: 1px solid var(--code-border);
+  background: var(--code-header);
+}
+.code-block-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.code-dot {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  opacity: 0.65;
+}
+.code-dot[data-c="r"] {
+  background: #ff5f57;
+}
+.code-dot[data-c="y"] {
+  background: #febc2e;
+}
+.code-dot[data-c="g"] {
+  background: #28c840;
+}
+.code-filename {
+  margin-left: 0.5em;
+  font-size: 0.8rem;
+  color: var(--color-muted-foreground);
+}
+.code-block-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+.code-lang {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted-foreground);
+}
+.code-copy {
+  display: grid;
+  place-items: center;
+  padding: 0.3em;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
+  transition: all 0.15s;
+}
+.code-copy:hover {
+  background: color-mix(in oklch, var(--color-foreground) 8%, transparent);
+  color: var(--color-foreground);
+}
+.code-copy.copied {
+  color: var(--color-success);
+}
+.code-block pre.shiki {
+  margin: 0;
+  padding: 1em 0;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  background: transparent !important;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.code-block pre.shiki code {
+  display: block;
+  width: fit-content;
+  min-width: 100%;
+}
+.shiki span {
+  color: var(--shiki-light);
+}
+.dark .shiki span {
+  color: var(--shiki-dark);
+}
+/* Line numbers */
+.with-line-numbers code {
+  counter-reset: step;
+}
+.with-line-numbers .line {
+  display: inline-block;
+  width: 100%;
+  padding: 0 1.2em;
+}
+.with-line-numbers .line::before {
+  content: counter(step);
+  counter-increment: step;
+  display: inline-block;
+  width: 1.4rem;
+  margin-right: 1.4em;
+  text-align: right;
+  color: var(--color-muted-foreground);
+  opacity: 0.5;
+}
+.shiki .line.highlighted {
+  background: color-mix(in oklch, var(--color-accent) 14%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+.shiki .highlighted-word {
+  background: color-mix(in oklch, var(--color-accent) 20%, transparent);
+  border-radius: 3px;
+  padding: 0.1em 0.2em;
+}
+/* Collapse tall blocks */
+.code-block.is-collapsed pre.shiki {
+  max-height: 24rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 78%, transparent);
+}
+.code-expand {
+  display: block;
+  width: 100%;
+  padding: 0.5em;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-accent);
+  border-top: 1px solid var(--color-border);
+  background: color-mix(in oklch, var(--color-foreground) 3%, transparent);
+  transition: background 0.15s;
+}
+.code-expand:hover {
+  background: color-mix(in oklch, var(--color-foreground) 7%, transparent);
+}
+
+/* ── Mermaid ─────────────────────────────────────────────────── */
+.mermaid-src {
+  display: none;
+}
+.mermaid-src.mermaid-rendered {
+  display: flex;
+  justify-content: center;
+  margin: 1.8em 0;
+  padding: 1.2em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow-x: auto;
+}
+.mermaid-src svg {
+  max-width: 100%;
+  height: auto;
+}
+.mermaid-error {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+}
