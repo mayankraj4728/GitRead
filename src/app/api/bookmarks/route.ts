@@ -1,8 +1,9 @@
 import type { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-/** Toggle a bookmark for a document. Returns the new state. */
+/** Toggle a bookmark for a document. Returns the new state. Race-safe. */
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return new Response(null, { status: 401 });
@@ -21,11 +22,23 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.bookmark.findUnique({ where });
 
   if (existing) {
-    await prisma.bookmark.delete({ where });
+    // Ignore "not found" if a concurrent request already deleted it.
+    try {
+      await prisma.bookmark.delete({ where });
+    } catch (err) {
+      if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025")) throw err;
+    }
     return Response.json({ bookmarked: false });
   }
-  await prisma.bookmark.create({
-    data: { userId, repoFullName, filePath, label: label ?? null },
-  });
+
+  try {
+    await prisma.bookmark.create({
+      data: { userId, repoFullName, filePath, label: label ?? null },
+    });
+  } catch (err) {
+    // A concurrent request created it first — that's still "bookmarked".
+    if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) throw err;
+  }
   return Response.json({ bookmarked: true });
 }
+

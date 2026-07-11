@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, PanelLeft, X } from "lucide-react";
 import { FileTree } from "@/components/navigation/file-tree";
 import { Button } from "@/components/ui/button";
-import { useReaderNav, type NavFile } from "@/stores/reader-nav";
+import { useReaderNav, usePrevNext, type NavFile } from "@/stores/reader-nav";
+import { useSwipe } from "@/hooks/use-swipe";
 import type { Repo, TreeNode } from "@/types";
 
 const MD_EXT = new Set(["md", "mdx", "markdown"]);
@@ -34,6 +35,7 @@ interface Props {
 }
 
 function SidebarBody({ repo, slug, tree, count }: Omit<Props, "children">) {
+  const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-4 py-4">
@@ -48,8 +50,8 @@ function SidebarBody({ repo, slug, tree, count }: Omit<Props, "children">) {
           {repo.owner} · {count} files
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto px-2 py-3">
-        <FileTree tree={tree} repoFullName={slug} />
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-3">
+        <FileTree tree={tree} repoFullName={slug} scrollRef={scrollRef} />
       </div>
     </div>
   );
@@ -59,8 +61,10 @@ function SidebarBody({ repo, slug, tree, count }: Omit<Props, "children">) {
 export function ReaderShell({ repo, slug, tree, count, children }: Props) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const setRepo = useReaderNav((s) => s.setRepo);
   const clearNav = useReaderNav((s) => s.clear);
+  const { prev, next } = usePrevNext();
 
   // Close the mobile drawer on navigation.
   useEffect(() => setOpen(false), [pathname]);
@@ -71,6 +75,21 @@ export function ReaderShell({ repo, slug, tree, count, children }: Props) {
     setRepo(slug, flattenTree(tree));
     return () => clearNav();
   }, [slug, tree, setRepo, clearNav]);
+
+  // Mobile gestures: edge-swipe-right opens the file tree; when it's closed,
+  // swipe left/right navigates to the next/previous document.
+  useSwipe({
+    edgeOnly: true,
+    onSwipeRight: () => setOpen(true),
+  });
+  useSwipe({
+    onSwipeLeft: () => {
+      if (!open && next) router.push(`/read/${slug}/${next.path}`);
+    },
+    onSwipeRight: () => {
+      if (!open && prev) router.push(`/read/${slug}/${prev.path}`);
+    },
+  });
 
   return (
     <div className="reader-shell mx-auto flex max-w-[100rem] lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">

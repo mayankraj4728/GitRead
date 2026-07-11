@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Topbar } from "@/components/layout/topbar";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { AppOverlays } from "@/components/command/app-overlays";
+import { Toaster } from "@/components/ui/toaster";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) redirect("/");
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-14 lg:pb-0">
       <Topbar
         user={{
           name: session.user.name,
@@ -17,7 +19,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }}
       />
       {children}
+      <MobileNav />
       <AppOverlays />
+      <Toaster />
     </div>
   );
 }

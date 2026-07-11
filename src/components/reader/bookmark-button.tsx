@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toggleBookmark } from "@/lib/collections-client";
+import { toast } from "@/stores/toast";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -25,8 +26,10 @@ export function BookmarkButton({ repoFullName, filePath, title, initial }: Props
       try {
         const server = await toggleBookmark({ repoFullName, filePath, label: title });
         setBookmarked(server);
+        toast.success(server ? "Bookmark added" : "Bookmark removed");
       } catch {
         setBookmarked(!next); // revert
+        toast.error("Couldn't update bookmark");
       }
     });
   };

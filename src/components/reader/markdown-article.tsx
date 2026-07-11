@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { enhanceCodeBlocks, enhanceImages, renderMermaid } from "./enhance";
+import { ZoomableImage } from "./zoomable-image";
 
 interface Props {
   html: string;
@@ -64,18 +65,11 @@ export function MarkdownArticle({ html, docKey }: Props) {
             >
               <X className="size-5" />
             </button>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <motion.img
-              src={zoom.src}
-              alt={zoom.alt}
-              className="max-h-[90vh] max-w-full rounded-lg object-contain shadow-2xl"
-              initial={{ scale: 0.92 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.92 }}
-              onClick={(e) => e.stopPropagation()}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <ZoomableImage src={zoom.src} alt={zoom.alt} />
+            </div>
             {zoom.alt && (
-              <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-white/70">
+              <p className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-white/70">
                 {zoom.alt}
               </p>
             )}

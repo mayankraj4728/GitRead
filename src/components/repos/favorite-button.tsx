@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Star } from "lucide-react";
 import { toggleFavorite } from "@/lib/collections-client";
+import { toast } from "@/stores/toast";
 import { cn } from "@/lib/utils";
 
 /** Star toggle overlaid on a repo card (won't trigger the card's link). */
@@ -23,9 +24,12 @@ export function FavoriteButton({
     setFavorited(next);
     start(async () => {
       try {
-        setFavorited(await toggleFavorite(repoFullName));
+        const server = await toggleFavorite(repoFullName);
+        setFavorited(server);
+        toast.success(server ? "Added to favorites" : "Removed from favorites");
       } catch {
         setFavorited(!next);
+        toast.error("Couldn't update favorite");
       }
     });
   };

@@ -203,8 +203,8 @@ difference is the data source.
 | **2 — Navigation & power** | ✅ Shipped | ⌘K palette, search, bookmarks/favorites, reading controls, Zen |
 | **+ Read any public repo** | ✅ Shipped | Paste any GitHub URL — repo/branch/folder/file |
 | **+ PDF viewer** | ✅ Shipped | Inline PDF reading for public & private repos |
+| **5 — Performance, sync & mobile** | ✅ Shipped | Virtualized tree, hover-prefetch, real-time commit sync, mobile gestures + bottom nav, toasts, transitions, pinch-to-zoom |
 | **3 — Knowledge graph** | 🔜 Planned | `[[wiki links]]`, `#tags`, Obsidian-style graph, backlinks |
-| **5 — Product polish** | 🔜 Planned | Webhook sync, virtualized tree, mobile gestures, accessibility |
 
 _(Phase 4 — an AI assistant — is intentionally out of scope.)_
 

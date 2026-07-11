@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, FileText, Folder, FolderOpen } from "lucide-react";
 import { cn, fileToTitle } from "@/lib/utils";
@@ -26,14 +27,18 @@ const INDENT = 12;
 
 export function FileTreeNode({ node, depth, base, activePath, isOpen, onToggle }: Props) {
   const pad = { paddingLeft: `${depth * INDENT + 8}px` };
+  const router = useRouter();
 
   if (node.type === "file") {
     const active = node.path === activePath;
+    const href = `${base}/${node.path}`;
     return (
       <Link
-        href={`${base}/${node.path}`}
+        href={href}
         style={pad}
         aria-current={active ? "page" : undefined}
+        // Prefetch on hover for near-instant navigation.
+        onMouseEnter={() => router.prefetch(href)}
         className={cn(
           "flex items-center gap-2 rounded-md py-1.5 pr-2 transition-colors",
           active

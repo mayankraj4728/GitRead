@@ -9,6 +9,7 @@ import { TableOfContents } from "@/components/navigation/table-of-contents";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
 import { useApplyReaderPrefs } from "@/hooks/use-apply-reader-prefs";
+import { useRepoSync } from "@/hooks/use-repo-sync";
 import { postProgress } from "@/lib/progress-client";
 import { useReaderNav } from "@/stores/reader-nav";
 import type { DocPayload } from "@/types";
@@ -25,6 +26,7 @@ export function ReaderView({ doc, restoreTo, bookmarked }: Props) {
   const activeHeading = useScrollSpy(ids);
   const setCurrentPath = useReaderNav((s) => s.setCurrentPath);
   useApplyReaderPrefs();
+  useRepoSync(doc.repoFullName, doc.sha);
 
   const progress = useReadingProgress({
     repoFullName: doc.repoFullName,

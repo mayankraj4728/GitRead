@@ -621,7 +621,11 @@ body.zen .reader-shell {
 body.zen .reading-progress {
   top: 0;
 }
+/* Collapse the 2-column grid to a single centered reading column (the TOC is
+   hidden, so its reserved column would otherwise push content to the left). */
 body.zen .reader-main {
+  display: block;
+  max-width: 54rem;
   padding-top: 3.5rem;
 }
 
