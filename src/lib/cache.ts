@@ -11,6 +11,7 @@ export const cacheKeys = {
   tree: (fullName: string, sha: string) => `${VERSION}:tree:${fullName}:${sha}`,
   file: (fullName: string, sha: string, path: string) =>
     `${VERSION}:file:${fullName}:${sha}:${path}`,
+  searchIndex: (fullName: string, sha: string) => `${VERSION}:sindex:${fullName}:${sha}`,
 } as const;
 
 /** Default TTLs (seconds). Content pinned to a sha can live long; head is short. */

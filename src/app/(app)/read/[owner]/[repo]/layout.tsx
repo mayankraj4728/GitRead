@@ -1,6 +1,8 @@
-import { notFound } from "next/navigation";
 import { getRepoBundle } from "@/lib/reader";
+import { RepoNotFoundError, RateLimitError } from "@/lib/github/client";
+import { parseRepoSegment } from "@/lib/github-url";
 import { ReaderShell } from "@/components/reader/reader-shell";
+import { RepoError } from "@/components/reader/repo-error";
 
 interface Props {
   children: React.ReactNode;
@@ -9,16 +11,24 @@ interface Props {
 
 export default async function ReadLayout({ children, params }: Props) {
   const { owner, repo } = await params;
+  const { name, ref } = parseRepoSegment(repo);
 
   let bundle;
   try {
-    bundle = await getRepoBundle(owner, repo);
-  } catch {
-    notFound();
+    bundle = await getRepoBundle(owner, name, ref);
+  } catch (err) {
+    if (err instanceof RepoNotFoundError) return <RepoError kind="not-found" repo={`${owner}/${name}`} />;
+    if (err instanceof RateLimitError) return <RepoError kind="rate-limit" />;
+    return <RepoError kind="error" repo={`${owner}/${name}`} />;
   }
 
   return (
-    <ReaderShell repo={bundle.repo} tree={bundle.tree} count={bundle.markdownCount}>
+    <ReaderShell
+      repo={bundle.repo}
+      slug={bundle.slug}
+      tree={bundle.tree}
+      count={bundle.fileCount}
+    >
       {children}
     </ReaderShell>
   );

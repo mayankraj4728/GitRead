@@ -8,9 +8,10 @@ import type { Repo } from "@/types";
 type Filter = "all" | "public" | "private";
 
 /** Searchable, filterable grid of repository cards. */
-export function RepoGrid({ repos }: { repos: Repo[] }) {
+export function RepoGrid({ repos, favorites = [] }: { repos: Repo[]; favorites?: string[] }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -70,7 +71,7 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((repo) => (
-            <RepoCard key={repo.id} repo={repo} />
+            <RepoCard key={repo.id} repo={repo} favorited={favoriteSet.has(repo.fullName)} />
           ))}
         </div>
       )}

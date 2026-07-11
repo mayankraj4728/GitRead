@@ -6,6 +6,13 @@ import { ChevronRight, FileText, Folder, FolderOpen } from "lucide-react";
 import { cn, fileToTitle } from "@/lib/utils";
 import type { TreeNode } from "@/types";
 
+const MARKDOWN_EXT = new Set(["md", "mdx", "markdown"]);
+
+/** Markdown files get a prettified title; other files keep their real name. */
+function displayName(node: TreeNode): string {
+  return node.ext && MARKDOWN_EXT.has(node.ext) ? fileToTitle(node.name) : node.name;
+}
+
 interface Props {
   node: TreeNode;
   depth: number;
@@ -35,7 +42,7 @@ export function FileTreeNode({ node, depth, base, activePath, isOpen, onToggle }
         )}
       >
         <FileText className="size-4 shrink-0 opacity-70" />
-        <span className="truncate">{fileToTitle(node.name)}</span>
+        <span className="truncate">{displayName(node)}</span>
       </Link>
     );
   }

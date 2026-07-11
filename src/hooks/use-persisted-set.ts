@@ -31,7 +31,8 @@ export function usePersistedSet(
     (v: string) => {
       setSet((prev) => {
         const next = new Set(prev);
-        next.has(v) ? next.delete(v) : next.add(v);
+        if (next.has(v)) next.delete(v);
+        else next.add(v);
         try {
           localStorage.setItem(storageKey, JSON.stringify([...next]));
         } catch {

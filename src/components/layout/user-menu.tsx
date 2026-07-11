@@ -40,14 +40,18 @@ export function UserMenu({ name, image, login }: Props) {
           {login && <p className="truncate text-xs text-muted-foreground">@{login}</p>}
         </div>
         <div className="my-1 h-px bg-border" />
-        <form action={logout}>
-          <DropdownMenuItem asChild>
-            <button type="submit" className="w-full text-danger">
-              <LogOut className="size-4" />
-              Sign out
-            </button>
-          </DropdownMenuItem>
-        </form>
+        <DropdownMenuItem
+          className="text-danger"
+          onSelect={(e) => {
+            // Radix closes the menu on select; call the server action directly
+            // (a nested <form> submit would be cancelled by the unmount).
+            e.preventDefault();
+            void logout();
+          }}
+        >
+          <LogOut className="size-4" />
+          Sign out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

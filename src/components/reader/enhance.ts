@@ -56,8 +56,8 @@ export function enhanceCodeBlocks(root: HTMLElement): void {
     wrapper.appendChild(pre);
     pre.classList.add("with-line-numbers");
 
-    // Expand / collapse tall blocks.
-    if (pre.scrollHeight > COLLAPSE_THRESHOLD) {
+    // Expand / collapse tall blocks — but never collapse a full-file view.
+    if (pre.dataset.fullfile === undefined && pre.scrollHeight > COLLAPSE_THRESHOLD) {
       wrapper.classList.add("is-collapsed");
       const toggle = document.createElement("button");
       toggle.type = "button";

@@ -1,33 +1,37 @@
 import Link from "next/link";
 import { Lock, Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { FavoriteButton } from "./favorite-button";
 import { languageColor } from "@/lib/languages";
 import { formatCompact, timeAgo } from "@/lib/utils";
 import type { Repo } from "@/types";
 
 /** Elegant repository card linking into the reader. */
-export function RepoCard({ repo }: { repo: Repo }) {
+export function RepoCard({ repo, favorited = false }: { repo: Repo; favorited?: boolean }) {
   return (
     <Link
       href={`/read/${repo.owner}/${repo.name}`}
-      className="group flex h-full flex-col rounded-xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
+      className="group relative flex h-full flex-col rounded-xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-xs text-muted-foreground">{repo.owner}</p>
           <h3 className="truncate font-semibold tracking-tight group-hover:text-accent">
             {repo.name}
           </h3>
         </div>
-        <Badge variant={repo.private ? "outline" : "success"}>
-          {repo.private ? (
-            <>
-              <Lock className="size-3" /> Private
-            </>
-          ) : (
-            "Public"
-          )}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-1">
+          <Badge variant={repo.private ? "outline" : "success"}>
+            {repo.private ? (
+              <>
+                <Lock className="size-3" /> Private
+              </>
+            ) : (
+              "Public"
+            )}
+          </Badge>
+          <FavoriteButton repoFullName={repo.fullName} initial={favorited} />
+        </div>
       </div>
 
       <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm text-muted-foreground">

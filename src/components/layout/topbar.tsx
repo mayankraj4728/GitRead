@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Search } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { UserMenu } from "./user-menu";
+import { useUi } from "@/stores/ui";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -18,8 +19,9 @@ interface Props {
 
 export function Topbar({ user }: Props) {
   const pathname = usePathname();
+  const open = useUi((s) => s.open);
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
+    <header className="zen-hide sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="grid size-7 place-items-center rounded-md bg-accent text-accent-foreground">
@@ -45,6 +47,21 @@ export function Topbar({ user }: Props) {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-1">
+          <button
+            onClick={() => open("palette")}
+            className="mr-1 hidden items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground sm:flex"
+          >
+            <Search className="size-3.5" />
+            <span>Search…</span>
+            <kbd className="rounded border border-border bg-muted px-1.5 text-xs">⌘K</kbd>
+          </button>
+          <button
+            onClick={() => open("palette")}
+            aria-label="Search"
+            className="grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:hidden"
+          >
+            <Search className="size-4" />
+          </button>
           <ThemeToggle />
           <UserMenu name={user.name} image={user.image} login={user.login} />
         </div>

@@ -1,5 +1,6 @@
 import type { Octokit } from "@octokit/rest";
 import { cached, cacheKeys, TTL } from "@/lib/cache";
+import { withRetry } from "./client";
 
 export class FileNotFoundError extends Error {
   constructor(path: string) {
@@ -21,12 +22,9 @@ export async function getFileContent(
 ): Promise<string> {
   const fullName = `${owner}/${name}`;
   return cached(cacheKeys.file(fullName, sha, path), TTL.content, async () => {
-    const { data } = await octokit.repos.getContent({
-      owner,
-      repo: name,
-      path,
-      ref: sha,
-    });
+    const { data } = await withRetry(() =>
+      octokit.repos.getContent({ owner, repo: name, path, ref: sha }),
+    );
     if (Array.isArray(data) || data.type !== "file" || !("content" in data)) {
       throw new FileNotFoundError(path);
     }

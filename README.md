@@ -117,17 +117,36 @@ images.
 
 ---
 
+## Keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| `⌘/Ctrl + K` | Command palette (files · repos · commands) |
+| `/` | Search the current repository |
+| `t` | Cycle theme (light → dark → system) |
+| `z` | Toggle Zen mode |
+| `b` | Bookmark the current document |
+| `[` / `]` | Previous / next document |
+| `?` | Shortcuts help |
+| `Esc` | Close overlays |
+
+---
+
 ## Roadmap
 
-Phase 1 focuses on the reading core. The architecture leaves clean seams
-(schema stubs, folder layout) for later phases:
+**Phase 1 — Core reading** ✅ · **Phase 2 — Navigation & reading power** ✅
 
-- Search + `Ctrl/⌘+K` command palette · fuzzy content search
-- Bookmarks · favorites (schema already present)
-- Font/width/line-height controls · zen mode
-- AI assistant (summarize, quiz, flashcards, Q&A over the repo)
-- Graph view · `[[wiki links]]` · `#tags`
-- Mobile swipe gestures · offline
+Phase 2 shipped: command palette (`⌘K`), in-repo fuzzy search over
+titles/headings/filenames/content (cached per-repo index), bookmarks &
+favorites, reading controls (text size, line height, width, serif/sans),
+Zen mode, and keyboard shortcuts.
+
+Remaining phases (clean seams already in place):
+
+- **Phase 3 — Knowledge graph:** `[[wiki links]]` · `#tags` · Obsidian-style graph view
+- **Phase 5 — Polish:** webhook sync · virtualized tree/prefetch · mobile gestures · a11y
+
+(Phase 4 — AI assistant — is intentionally skipped.)
 
 ---
 

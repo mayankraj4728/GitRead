@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { BookOpen, Code2, FileText, Sparkles, GitBranch, Search } from "lucide-react";
 import { GitHubButton } from "./github-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -47,12 +46,12 @@ export function Landing() {
           </p>
           <div className="mt-9 flex items-center justify-center gap-3">
             <GitHubButton size="lg" />
-            <Link
+            <a
               href="#features"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               See features →
-            </Link>
+            </a>
           </div>
         </div>
       </section>

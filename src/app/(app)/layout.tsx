@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Topbar } from "@/components/layout/topbar";
+import { AppOverlays } from "@/components/command/app-overlays";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -16,6 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }}
       />
       {children}
+      <AppOverlays />
     </div>
   );
 }

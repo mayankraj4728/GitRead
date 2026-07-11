@@ -13,6 +13,7 @@ interface Props {
 
 /** Ancestor dir paths of the active file, so its folders start expanded. */
 function ancestorsOf(path: string): string[] {
+  if (!path) return [];
   const parts = path.split("/");
   parts.pop();
   const acc: string[] = [];

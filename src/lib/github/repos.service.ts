@@ -1,5 +1,6 @@
 import type { Octokit } from "@octokit/rest";
 import { cached, cacheKeys, TTL } from "@/lib/cache";
+import { withRetry } from "./client";
 import type { Repo } from "@/types";
 
 /** Map a raw GitHub repo payload to our normalized {@link Repo}. */
@@ -51,7 +52,7 @@ export async function getRepo(
 ): Promise<Repo> {
   const fullName = `${owner}/${name}`;
   return cached(cacheKeys.repoMeta(fullName), TTL.repoList, async () => {
-    const { data } = await octokit.repos.get({ owner, repo: name });
+    const { data } = await withRetry(() => octokit.repos.get({ owner, repo: name }));
     return toRepo(data);
   });
 }
@@ -68,7 +69,7 @@ export async function getHeadSha(
 ): Promise<string> {
   const fullName = `${owner}/${name}`;
   return cached(cacheKeys.repoHead(fullName, ref), TTL.head, async () => {
-    const { data } = await octokit.repos.getCommit({ owner, repo: name, ref });
+    const { data } = await withRetry(() => octokit.repos.getCommit({ owner, repo: name, ref }));
     return data.sha;
   });
 }

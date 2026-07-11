@@ -94,7 +94,10 @@
 
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-reading-serif), ui-serif, Georgia, serif;
-  --font-mono: var(--font-mono-src), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* System monospace first (matches GitHub) — its box-drawing/pipe glyphs tile
+     into continuous lines for ASCII diagrams. JetBrains Mono left them gappy. */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 }
 
 @layer base {
@@ -169,16 +172,26 @@
    ════════════════════════════════════════════════════════════════ */
 .prose-reader {
   --measure: 46rem;
-  max-width: var(--measure);
-  font-family: var(--font-serif);
-  font-size: 1.075rem;
-  line-height: 1.8;
+  /* Container is wider than the text measure so code blocks, tables, and
+     diagrams get room; prose text below is capped back to --measure.
+     Font size / line height / font family are driven by reading preferences
+     (fallbacks preserve the Phase-1 defaults when unset). */
+  max-width: calc(var(--measure) + 8rem);
+  font-family: var(--reading-font, var(--font-serif));
+  font-size: calc(1.075rem * var(--reading-scale, 1));
+  line-height: var(--reading-line-height, 1.8);
   color: var(--color-foreground);
   animation: fade-in 0.4s ease both;
 }
 
 .prose-reader > *:first-child {
   margin-top: 0;
+}
+
+/* Keep running prose at a comfortable line length; let code/tables/figures
+   span the full container width. */
+.prose-reader > :where(p, ul, ol, blockquote, .gh-alert) {
+  max-width: var(--measure);
 }
 
 .prose-reader p {
@@ -408,16 +421,23 @@
   overflow-x: auto;
   font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.875rem;
-  line-height: 1.7;
+  line-height: 1.25;
   tab-size: 2;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
-/* Hard guarantee: highlighted code always uses a real monospace font. */
+/* Hard guarantee: highlighted code always uses a real monospace font AND
+   preserves every space so ASCII/box-drawing diagrams stay aligned. */
 .prose-reader pre.shiki,
 .prose-reader pre.shiki code,
 .prose-reader pre.shiki span {
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-variant-ligatures: none;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo,
+    "Courier New", monospace !important;
+  font-variant-ligatures: none !important;
+  font-feature-settings: normal !important;
+  white-space: pre !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  text-align: left;
 }
 
 /* Enhanced block: the wrapper owns the box; the inner <pre> goes flush. */
@@ -497,16 +517,21 @@
   padding: 1em 0;
   overflow-x: auto;
   font-size: 0.875rem;
-  line-height: 1.7;
+  line-height: 1.25;
   background: transparent !important;
   border: 0;
   border-radius: 0;
   box-shadow: none;
 }
-.code-block pre.shiki code {
-  display: block;
-  width: fit-content;
+/* Code grows to its widest line and scrolls horizontally, left-aligned, so
+   nothing is ever clipped (wide ASCII diagrams included). */
+.prose-reader pre.shiki > code {
+  display: inline-block;
   min-width: 100%;
+  box-sizing: border-box;
+}
+.prose-reader pre.shiki .line {
+  display: block;
 }
 .shiki span {
   color: var(--shiki-light);
@@ -514,14 +539,12 @@
 .dark .shiki span {
   color: var(--shiki-dark);
 }
-/* Line numbers */
+/* Line numbers (enhanced blocks) */
 .with-line-numbers code {
   counter-reset: step;
 }
 .with-line-numbers .line {
-  display: inline-block;
-  width: 100%;
-  padding: 0 1.2em;
+  padding: 0 1.3em;
 }
 .with-line-numbers .line::before {
   content: counter(step);
@@ -585,4 +608,58 @@
 .mermaid-error {
   color: var(--color-danger);
   font-size: 0.85rem;
+}
+
+/* ── Zen mode ────────────────────────────────────────────────── */
+body.zen .zen-hide {
+  display: none !important;
+}
+/* Collapse the reader grid so the article uses the full width. */
+body.zen .reader-shell {
+  display: block !important;
+}
+body.zen .reading-progress {
+  top: 0;
+}
+body.zen .reader-main {
+  padding-top: 3.5rem;
+}
+
+/* ── PDF viewer ──────────────────────────────────────────────── */
+.prose-reader .pdf-embed {
+  margin: 0.5em 0;
+}
+.prose-reader .pdf-embed iframe {
+  width: 100%;
+  height: 82vh;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.prose-reader .pdf-fallback {
+  margin-top: 0.75em;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--color-muted-foreground);
+}
+.prose-reader .pdf-fallback a {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* ── Binary / non-previewable file placeholder ───────────────── */
+.prose-reader .binary-doc {
+  margin: 2em 0;
+  padding: 2.5em 2em;
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  font-family: var(--font-sans);
+  color: var(--color-muted-foreground);
+}
+.prose-reader .binary-doc a {
+  color: var(--color-accent);
+  font-weight: 500;
 }

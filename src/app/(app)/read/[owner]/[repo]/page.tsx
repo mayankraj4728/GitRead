@@ -1,28 +1,32 @@
 import { redirect } from "next/navigation";
-import { FileQuestion } from "lucide-react";
 import { getRepoBundle } from "@/lib/reader";
+import { findEntryDoc } from "@/lib/github/tree.service";
+import { RepoNotFoundError, RateLimitError } from "@/lib/github/client";
+import { parseRepoSegment } from "@/lib/github-url";
+import { RepoError } from "@/components/reader/repo-error";
 
 interface Props {
   params: Promise<{ owner: string; repo: string }>;
+  searchParams: Promise<{ in?: string }>;
 }
 
-export default async function RepoIndexPage({ params }: Props) {
+export default async function RepoIndexPage({ params, searchParams }: Props) {
   const { owner, repo } = await params;
-  const bundle = await getRepoBundle(owner, repo);
+  const { in: folder } = await searchParams;
+  const { name, ref } = parseRepoSegment(repo);
 
-  if (bundle.entryPath) {
-    redirect(`/read/${owner}/${repo}/${bundle.entryPath}`);
+  let bundle;
+  try {
+    bundle = await getRepoBundle(owner, name, ref);
+  } catch (err) {
+    if (err instanceof RepoNotFoundError) return <RepoError kind="not-found" repo={`${owner}/${name}`} />;
+    if (err instanceof RateLimitError) return <RepoError kind="rate-limit" />;
+    return <RepoError kind="error" repo={`${owner}/${name}`} />;
   }
 
-  return (
-    <div className="mx-auto flex max-w-md flex-col items-center px-6 py-32 text-center">
-      <span className="grid size-14 place-items-center rounded-2xl bg-muted text-muted-foreground">
-        <FileQuestion className="size-7" />
-      </span>
-      <h1 className="mt-5 text-xl font-semibold">No documents yet</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This repository doesn&apos;t contain any Markdown files to read.
-      </p>
-    </div>
-  );
+  // Open the entry doc — scoped to a folder when the URL pointed at one.
+  const target = findEntryDoc(bundle.tree, folder);
+  if (target) redirect(`/read/${owner}/${repo}/${target}`);
+
+  return <RepoError kind="empty" repo={`${owner}/${name}`} />;
 }
