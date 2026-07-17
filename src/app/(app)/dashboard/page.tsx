@@ -93,16 +93,19 @@ export default async function DashboardPage() {
         )}
       </section>
 
+      {/* min-w-0 lets each section shrink below its content's natural width —
+          without it, long nowrap doc titles blow the grid past the phone
+          viewport and the whole page zooms out unevenly. */}
       <div className="grid gap-8 lg:grid-cols-2">
         {recent.length > 0 && (
-          <section className="mb-4">
+          <section className="mb-4 min-w-0">
             <SectionHeading title="Recently read" />
             <RecentDocs docs={recent} />
           </section>
         )}
 
         {bookmarkDocs.length > 0 && (
-          <section className="mb-4">
+          <section className="mb-4 min-w-0">
             <SectionHeading title="Bookmarks" />
             <RecentDocs docs={bookmarkDocs} />
           </section>

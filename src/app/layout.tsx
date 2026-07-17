@@ -21,6 +21,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Explicit mobile viewport — layout width must equal the device width so
+  // Android Chrome never renders the page zoomed-out.
+  width: "device-width",
+  initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fdfcf9" },
     { media: "(prefers-color-scheme: dark)", color: "#161821" },

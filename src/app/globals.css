@@ -107,6 +107,15 @@
   html {
     scroll-behavior: smooth;
   }
+  /* Hard guarantee against horizontal overflow: one over-wide element (e.g. a
+     long nowrap title) must never widen the page — on phones that zooms the
+     whole layout out and every section renders at a different width.
+     `clip` (not `hidden`) so no scroll container is created and position:
+     sticky keeps working. */
+  html,
+  body {
+    overflow-x: clip;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);

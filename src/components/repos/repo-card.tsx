@@ -11,7 +11,7 @@ export function RepoCard({ repo, favorited = false }: { repo: Repo; favorited?: 
   return (
     <Link
       href={`/read/${repo.owner}/${repo.name}`}
-      className="group relative flex h-full flex-col rounded-xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
+      className="group relative flex h-full min-w-0 flex-col rounded-xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
