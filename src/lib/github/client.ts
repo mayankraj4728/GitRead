@@ -87,6 +87,20 @@ export class RateLimitError extends Error {
   }
 }
 
+/** The stored GitHub token is invalid/revoked — the user must sign in again. */
+export class TokenRevokedError extends Error {
+  constructor() {
+    super("GitHub token is invalid or has been revoked.");
+    this.name = "TokenRevokedError";
+  }
+}
+
+/** True when an error means the stored GitHub token no longer works. */
+export function isAuthRevoked(err: unknown): boolean {
+  if (err instanceof TokenRevokedError) return true;
+  return (err as { status?: number })?.status === 401;
+}
+
 /** Map a raw Octokit error to a typed domain error where possible. */
 export function classifyGitHubError(err: unknown, repoLabel: string): Error {
   const e = err as {
@@ -94,6 +108,7 @@ export function classifyGitHubError(err: unknown, repoLabel: string): Error {
     response?: { headers?: Record<string, string> };
   };
   const status = e?.status;
+  if (status === 401) return new TokenRevokedError();
   if (status === 404) return new RepoNotFoundError(repoLabel);
   if (status === 429) return new RateLimitError();
   if (status === 403) {

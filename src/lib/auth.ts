@@ -40,4 +40,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
+  events: {
+    /**
+     * Auth.js only stores the OAuth token when the account is FIRST linked.
+     * If the user revokes the app on GitHub and signs in again, the fresh
+     * token must replace the dead one — otherwise every GitHub call keeps
+     * failing with 401 even after re-authentication.
+     */
+    async signIn({ user, account }) {
+      if (account?.provider === "github" && user.id && account.access_token) {
+        await prisma.account.updateMany({
+          where: { userId: user.id, provider: "github" },
+          data: {
+            access_token: account.access_token,
+            refresh_token: account.refresh_token ?? undefined,
+            expires_at: account.expires_at ?? undefined,
+            token_type: account.token_type ?? undefined,
+            scope: account.scope ?? undefined,
+          },
+        });
+      }
+    },
+  },
 });

@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { getMyRepos } from "@/lib/reader";
 import { getContinueReading, getRecentlyRead } from "@/app/actions/progress";
 import { getFavoriteRepoNames, getBookmarks } from "@/lib/collections";
+import { isAuthRevoked } from "@/lib/github/client";
+import { purgeStaleSession } from "@/lib/purge-stale-session";
 import { SectionHeading } from "@/components/dashboard/section-heading";
 import { ContinueReading } from "@/components/dashboard/continue-reading";
 import { RecentDocs } from "@/components/dashboard/recent-docs";
@@ -23,7 +25,11 @@ export default async function DashboardPage() {
   const firstName = session?.user?.name?.split(" ")[0];
 
   const [repos, cont, recent, favorites, bookmarks] = await Promise.all([
-    getMyRepos().catch(() => []),
+    getMyRepos().catch(async (err) => {
+      // Revoked/dead GitHub token → clear the stale session, back to login.
+      if (isAuthRevoked(err)) await purgeStaleSession();
+      return [];
+    }),
     getContinueReading(),
     getRecentlyRead(6),
     getFavoriteRepoNames(),

@@ -118,9 +118,7 @@
   body,
   .theme-transition,
   .theme-transition * {
-    transition:
-      background-color 0.3s ease,
-      border-color 0.3s ease,
+    transition: background-color 0.3s ease, border-color 0.3s ease,
       color 0.2s ease;
   }
   ::selection {
@@ -244,7 +242,8 @@
 .prose-reader a:not(.heading-anchor) {
   color: var(--color-accent);
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in oklch, var(--color-accent) 35%, transparent);
+  border-bottom: 1px solid
+    color-mix(in oklch, var(--color-accent) 35%, transparent);
   transition: border-color 0.15s;
 }
 .prose-reader a:not(.heading-anchor):hover {
@@ -380,7 +379,11 @@
   padding: 0.9em 1.1em;
   border-radius: var(--radius-md);
   border-left: 3px solid var(--gh-c, var(--color-accent));
-  background: color-mix(in oklch, var(--gh-c, var(--color-accent)) 8%, var(--color-card));
+  background: color-mix(
+    in oklch,
+    var(--gh-c, var(--color-accent)) 8%,
+    var(--color-card)
+  );
   font-family: var(--font-sans);
   font-size: 0.96rem;
 }

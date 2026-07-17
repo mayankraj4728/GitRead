@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
 import { getMyRepos } from "@/lib/reader";
 import { getFavoriteRepoNames } from "@/lib/collections";
+import { isAuthRevoked } from "@/lib/github/client";
+import { purgeStaleSession } from "@/lib/purge-stale-session";
 import { RepoGrid } from "@/components/repos/repo-grid";
 import { OpenUrlBar } from "@/components/repos/open-url-bar";
 
 export const metadata: Metadata = { title: "Library" };
 
 export default async function ReposPage() {
-  const [repos, favorites] = await Promise.all([getMyRepos(), getFavoriteRepoNames()]);
+  let repos;
+  try {
+    repos = await getMyRepos();
+  } catch (err) {
+    // Revoked/dead GitHub token → clear the stale session, back to login.
+    if (isAuthRevoked(err)) await purgeStaleSession();
+    throw err;
+  }
+  const favorites = await getFavoriteRepoNames();
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">

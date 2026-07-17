@@ -4,7 +4,8 @@ import { getDocument } from "@/lib/reader";
 import { getProgress } from "@/app/actions/progress";
 import { isBookmarked } from "@/lib/collections";
 import { FileNotFoundError } from "@/lib/github/content.service";
-import { RepoNotFoundError, RateLimitError } from "@/lib/github/client";
+import { RepoNotFoundError, RateLimitError, TokenRevokedError } from "@/lib/github/client";
+import { purgeStaleSession } from "@/lib/purge-stale-session";
 import { parseRepoSegment } from "@/lib/github-url";
 import { ReaderView } from "@/components/reader/reader-view";
 import { RepoError } from "@/components/reader/repo-error";
@@ -37,6 +38,7 @@ export default async function DocPage({ params }: Props) {
   try {
     doc = await getDocument(owner, name, filePath, ref);
   } catch (err) {
+    if (err instanceof TokenRevokedError) await purgeStaleSession();
     if (err instanceof FileNotFoundError) notFound();
     if (err instanceof RepoNotFoundError) return <RepoError kind="not-found" repo={`${owner}/${name}`} />;
     if (err instanceof RateLimitError) return <RepoError kind="rate-limit" />;
