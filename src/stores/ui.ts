@@ -2,7 +2,8 @@
 
 import { create } from "zustand";
 
-type Overlay = "palette" | "search" | "help" | null;
+/** "files" is the mobile file-tree drawer; the rest are centered overlays. */
+type Overlay = "palette" | "search" | "help" | "files" | null;
 
 interface UiState {
   overlay: Overlay;

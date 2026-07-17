@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, PanelLeft, X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { FileTree } from "@/components/navigation/file-tree";
-import { Button } from "@/components/ui/button";
 import { useReaderNav, usePrevNext, type NavFile } from "@/stores/reader-nav";
+import { useUi } from "@/stores/ui";
 import { useSwipe } from "@/hooks/use-swipe";
 import type { Repo, TreeNode } from "@/types";
 
@@ -59,15 +59,24 @@ function SidebarBody({ repo, slug, tree, count }: Omit<Props, "children">) {
 
 /** Three-pane reading shell: file tree (left) + document/TOC (right). */
 export function ReaderShell({ repo, slug, tree, count, children }: Props) {
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const overlay = useUi((s) => s.overlay);
+  const openOverlay = useUi((s) => s.open);
+  const closeOverlay = useUi((s) => s.close);
   const setRepo = useReaderNav((s) => s.setRepo);
   const clearNav = useReaderNav((s) => s.clear);
   const { prev, next } = usePrevNext();
 
+  // The drawer lives in the shared ui store so the topbar's repo button
+  // (mobile) can open it from outside this component.
+  const open = overlay === "files";
+  const setOpen = (v: boolean) => (v ? openOverlay("files") : closeOverlay());
+
   // Close the mobile drawer on navigation.
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (useUi.getState().overlay === "files") useUi.getState().close();
+  }, [pathname]);
 
   // Publish the repo's flat file list for prev/next + the command palette;
   // clear it when leaving the repo.
@@ -92,21 +101,15 @@ export function ReaderShell({ repo, slug, tree, count, children }: Props) {
   });
 
   return (
-    <div className="reader-shell mx-auto flex max-w-[100rem] lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+    // NOTE: flex-col on mobile — a bare `flex` row squeezed the article into
+    // the right half of the screen next to the (now removed) trigger bar.
+    <div className="reader-shell mx-auto flex max-w-[100rem] flex-col lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
       {/* Desktop sidebar */}
       <aside className="zen-hide sticky top-14 hidden h-[calc(100vh-3.5rem)] border-r border-border lg:block">
         <SidebarBody repo={repo} slug={slug} tree={tree} count={count} />
       </aside>
 
-      {/* Mobile trigger */}
-      <div className="zen-hide sticky top-14 z-30 flex items-center gap-2 border-b border-border bg-background/80 px-4 py-2 backdrop-blur lg:hidden">
-        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          <PanelLeft className="size-4" /> Files
-        </Button>
-        <span className="truncate text-sm text-muted-foreground">{repo.name}</span>
-      </div>
-
-      {/* Mobile drawer */}
+      {/* Mobile drawer (opened from the topbar repo button or edge swipe) */}
       <AnimatePresence>
         {open && (
           <>

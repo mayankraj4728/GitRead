@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Search } from "lucide-react";
+import { BookOpen, FolderTree, Search } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { UserMenu } from "./user-menu";
 import { useUi } from "@/stores/ui";
+import { useReaderNav } from "@/stores/reader-nav";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -20,16 +21,43 @@ interface Props {
 export function Topbar({ user }: Props) {
   const pathname = usePathname();
   const open = useUi((s) => s.open);
+  const repoFullName = useReaderNav((s) => s.repoFullName);
+
+  // In the reader on mobile the sidebar is a drawer, so the logo slot becomes
+  // a repo button: folder icon + repo name, tap to browse the file tree.
+  // (repoFullName is only set client-side by ReaderShell, so SSR/first paint
+  // always renders the logo — no hydration mismatch.)
+  const inReader = pathname.startsWith("/read/") && !!repoFullName;
+  const repoName = repoFullName?.split("/")[1]?.split("~")[0];
+
   return (
     <header className="zen-hide sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold tracking-tight">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
+        {inReader && (
+          <button
+            onClick={() => open("files")}
+            className="flex min-w-0 items-center gap-2 font-semibold tracking-tight lg:hidden"
+            aria-label={`Browse files in ${repoName}`}
+          >
+            <span className="grid size-7 shrink-0 place-items-center rounded-md bg-accent text-accent-foreground">
+              <FolderTree className="size-4" />
+            </span>
+            <span className="max-w-[9rem] truncate text-sm">{repoName}</span>
+          </button>
+        )}
+        <Link
+          href="/dashboard"
+          className={cn(
+            "items-center gap-2 font-semibold tracking-tight",
+            inReader ? "hidden lg:flex" : "flex",
+          )}
+        >
           <span className="grid size-7 place-items-center rounded-md bg-accent text-accent-foreground">
             <BookOpen className="size-4" />
           </span>
           <span className="hidden sm:inline">GitRead</span>
         </Link>
-        <nav className="flex items-center gap-1">
+        <nav className={cn("items-center gap-1", inReader ? "hidden sm:flex" : "flex")}>
           {NAV.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
