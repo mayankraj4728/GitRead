@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { FileTree } from "@/components/navigation/file-tree";
 import { useReaderNav, usePrevNext, type NavFile } from "@/stores/reader-nav";
 import { useUi } from "@/stores/ui";
@@ -34,21 +34,49 @@ interface Props {
   children: React.ReactNode;
 }
 
-function SidebarBody({ repo, slug, tree, count }: Omit<Props, "children">) {
+function SidebarBody({
+  repo,
+  slug,
+  tree,
+  count,
+  onClose,
+}: Omit<Props, "children"> & { onClose?: () => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-4 py-4">
-        <Link
-          href="/repos"
-          className="mb-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-3.5" /> Library
-        </Link>
-        <h2 className="truncate font-semibold tracking-tight">{repo.name}</h2>
-        <p className="truncate text-xs text-muted-foreground">
-          {repo.owner} · {count} files
-        </p>
+        {onClose ? (
+          // Drawer mode: the back arrow closes the drawer (Library lives in
+          // the bottom nav on mobile, so no navigation link here).
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              aria-label="Close file tree"
+              className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+            <div className="min-w-0">
+              <h2 className="truncate font-semibold tracking-tight">{repo.name}</h2>
+              <p className="truncate text-xs text-muted-foreground">
+                {repo.owner} · {count} files
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <Link
+              href="/repos"
+              className="mb-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="size-3.5" /> Library
+            </Link>
+            <h2 className="truncate font-semibold tracking-tight">{repo.name}</h2>
+            <p className="truncate text-xs text-muted-foreground">
+              {repo.owner} · {count} files
+            </p>
+          </>
+        )}
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-3">
         <FileTree tree={tree} repoFullName={slug} scrollRef={scrollRef} />
@@ -127,14 +155,13 @@ export function ReaderShell({ repo, slug, tree, count, children }: Props) {
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
             >
-              <button
-                onClick={() => setOpen(false)}
-                className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground hover:bg-muted"
-                aria-label="Close"
-              >
-                <X className="size-4" />
-              </button>
-              <SidebarBody repo={repo} slug={slug} tree={tree} count={count} />
+              <SidebarBody
+                repo={repo}
+                slug={slug}
+                tree={tree}
+                count={count}
+                onClose={() => setOpen(false)}
+              />
             </motion.aside>
           </>
         )}

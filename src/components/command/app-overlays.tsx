@@ -29,6 +29,26 @@ export function AppOverlays() {
   const currentPath = useReaderNav((s) => s.currentPath);
   const { prev, next } = usePrevNext();
 
+  // Android back button: while any overlay (search / palette / help / file
+  // drawer) is open, back must dismiss the overlay — NOT navigate to the
+  // previous page. We push a marker history entry when an overlay opens;
+  // pressing back pops it (closing the overlay), and closing by other means
+  // (Esc, backdrop tap) consumes the marker with history.back().
+  const anyOverlayOpen = overlay !== null;
+  useEffect(() => {
+    if (!anyOverlayOpen) return;
+    window.history.pushState({ ...window.history.state, __gitreadOverlay: true }, "");
+    const onPop = () => useUi.getState().close();
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      // Still on our marker entry → the overlay was closed in-app; pop the
+      // marker so the next back works normally. (After a route navigation
+      // the marker is no longer current and must NOT be popped.)
+      if (window.history.state?.__gitreadOverlay) window.history.back();
+    };
+  }, [anyOverlayOpen]);
+
   useEffect(() => {
     const cycleTheme = () =>
       setTheme(theme === "light" ? "dark" : theme === "dark" ? "system" : "light");

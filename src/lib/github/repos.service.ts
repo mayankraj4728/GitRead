@@ -44,6 +44,17 @@ export async function listRepos(userId: string, octokit: Octokit): Promise<Repo[
   });
 }
 
+/** List the repositories the user has starred on GitHub, newest star first. */
+export async function listStarredRepos(userId: string, octokit: Octokit): Promise<Repo[]> {
+  return cached(cacheKeys.starredList(userId), TTL.repoList, async () => {
+    const repos = await octokit.paginate(octokit.activity.listReposStarredByAuthenticatedUser, {
+      per_page: 100,
+      sort: "created",
+    });
+    return repos.map(toRepo);
+  });
+}
+
 /** Fetch a single repository's metadata. */
 export async function getRepo(
   owner: string,

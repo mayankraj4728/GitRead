@@ -156,6 +156,9 @@ export function CommandPalette() {
         <input
           ref={inputRef}
           id="palette-title"
+          // autoFocus mounts focused within the original tap gesture so the
+          // Android keyboard opens; the delayed .focus() covers desktop.
+          autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}

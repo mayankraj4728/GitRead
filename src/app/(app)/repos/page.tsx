@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getMyRepos } from "@/lib/reader";
+import { getMyRepos, getMyStarredRepos } from "@/lib/reader";
 import { getFavoriteRepoNames } from "@/lib/collections";
 import { isAuthRevoked } from "@/lib/github/client";
 import { purgeStaleSession } from "@/lib/purge-stale-session";
@@ -17,7 +17,11 @@ export default async function ReposPage() {
     if (isAuthRevoked(err)) await purgeStaleSession();
     throw err;
   }
-  const favorites = await getFavoriteRepoNames();
+  const [favorites, starred] = await Promise.all([
+    getFavoriteRepoNames(),
+    // Starred repos are a bonus tab — never let them break the library page.
+    getMyStarredRepos().catch(() => []),
+  ]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -30,7 +34,7 @@ export default async function ReposPage() {
       <section className="mb-8">
         <OpenUrlBar />
       </section>
-      <RepoGrid repos={repos} favorites={[...favorites]} />
+      <RepoGrid repos={repos} starred={starred} favorites={[...favorites]} />
     </main>
   );
 }

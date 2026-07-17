@@ -5,6 +5,7 @@ const VERSION = "v1";
 
 export const cacheKeys = {
   repoList: (userId: string) => `${VERSION}:repos:${userId}`,
+  starredList: (userId: string) => `${VERSION}:starred:${userId}`,
   repoMeta: (fullName: string) => `${VERSION}:repo:${fullName}`,
   repoHead: (fullName: string, ref: string) => `${VERSION}:head:${fullName}:${ref}`,
   // Content keys are pinned to a commit sha so a push naturally invalidates them.

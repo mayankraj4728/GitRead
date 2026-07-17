@@ -5,17 +5,27 @@ import { Search, X } from "lucide-react";
 import { RepoCard } from "./repo-card";
 import type { Repo } from "@/types";
 
-type Filter = "all" | "public" | "private";
+type Filter = "all" | "public" | "private" | "starred";
 
 /** Searchable, filterable grid of repository cards. */
-export function RepoGrid({ repos, favorites = [] }: { repos: Repo[]; favorites?: string[] }) {
+export function RepoGrid({
+  repos,
+  starred = [],
+  favorites = [],
+}: {
+  repos: Repo[];
+  /** Repos the user starred on GitHub — a separate list, not a subset of `repos`. */
+  starred?: Repo[];
+  favorites?: string[];
+}) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return repos.filter((r) => {
+    const source = filter === "starred" ? starred : repos;
+    return source.filter((r) => {
       if (filter === "public" && r.private) return false;
       if (filter === "private" && !r.private) return false;
       if (!q) return true;
@@ -25,7 +35,12 @@ export function RepoGrid({ repos, favorites = [] }: { repos: Repo[]; favorites?:
         (r.description?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [repos, query, filter]);
+  }, [repos, starred, query, filter]);
+
+  const emptyMessage =
+    filter === "starred" && !query.trim()
+      ? "You haven't starred any repositories on GitHub yet."
+      : `No repositories match “${query}”.`;
 
   return (
     <div>
@@ -49,7 +64,7 @@ export function RepoGrid({ repos, favorites = [] }: { repos: Repo[]; favorites?:
           )}
         </div>
         <div className="inline-flex rounded-lg border border-border bg-card p-0.5 text-sm">
-          {(["all", "public", "private"] as Filter[]).map((f) => (
+          {(["all", "public", "private", "starred"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -65,9 +80,7 @@ export function RepoGrid({ repos, favorites = [] }: { repos: Repo[]; favorites?:
       </div>
 
       {filtered.length === 0 ? (
-        <p className="mt-16 text-center text-sm text-muted-foreground">
-          No repositories match “{query}”.
-        </p>
+        <p className="mt-16 text-center text-sm text-muted-foreground">{emptyMessage}</p>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((repo) => (

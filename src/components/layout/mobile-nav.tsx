@@ -8,6 +8,21 @@ import { useUi } from "@/stores/ui";
 import { useReaderNav } from "@/stores/reader-nav";
 import { cn } from "@/lib/utils";
 
+/**
+ * Sun in dark mode, moon in light — but both are always in the HTML and CSS
+ * picks one (`dark:` variant). Branching on `resolvedTheme` here would break
+ * hydration: the server doesn't know the device theme, so its HTML wouldn't
+ * match the first client render.
+ */
+function ThemeIcon({ className }: { className?: string }) {
+  return (
+    <span className={cn("relative", className)}>
+      <Sun className="absolute inset-0 size-full rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <Moon className="size-full rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+    </span>
+  );
+}
+
 /** Native-feeling bottom navigation, mobile only. Hidden in Zen mode. */
 export function MobileNav() {
   const pathname = usePathname();
@@ -28,7 +43,7 @@ export function MobileNav() {
       />
       <Button
         onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-        icon={resolvedTheme === "dark" ? Sun : Moon}
+        icon={ThemeIcon}
         label="Theme"
       />
     </nav>

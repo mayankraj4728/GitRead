@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { requireOctokit, classifyGitHubError } from "@/lib/github/client";
-import { getRepo, getHeadSha, listRepos } from "@/lib/github/repos.service";
+import { getRepo, getHeadSha, listRepos, listStarredRepos } from "@/lib/github/repos.service";
 import { getFileTree, findEntryDoc } from "@/lib/github/tree.service";
 import { getFileContent, FileNotFoundError } from "@/lib/github/content.service";
 import { renderMarkdown } from "@/lib/markdown/process";
@@ -30,6 +30,12 @@ export interface RepoBundle {
 export async function getMyRepos(): Promise<Repo[]> {
   const { userId, octokit } = await requireOctokit();
   return listRepos(userId, octokit);
+}
+
+/** List the repos the user has starred on GitHub (cached). */
+export async function getMyStarredRepos(): Promise<Repo[]> {
+  const { userId, octokit } = await requireOctokit();
+  return listStarredRepos(userId, octokit);
 }
 
 /**

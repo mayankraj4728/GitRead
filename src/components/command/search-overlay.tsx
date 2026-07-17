@@ -111,6 +111,10 @@ export function SearchOverlay() {
         <input
           ref={inputRef}
           id="search-title"
+          // autoFocus mounts focused within the original tap gesture — the
+          // only way Android Chrome will open the keyboard. The delayed
+          // .focus() in the effect above covers desktop re-focus cases.
+          autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
