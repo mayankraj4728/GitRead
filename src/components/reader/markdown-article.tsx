@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -13,8 +13,16 @@ interface Props {
   docKey: string;
 }
 
-/** Renders sanitized markdown HTML and progressively enhances it. */
-export function MarkdownArticle({ html, docKey }: Props) {
+/**
+ * Renders sanitized markdown HTML and progressively enhances it.
+ *
+ * Memoized: the parent (ReaderView) re-renders on every scroll tick for the
+ * reading-progress bar. Re-rendering this subtree makes React re-apply
+ * `dangerouslySetInnerHTML` around the enhanced (reparented) code blocks,
+ * which recreates the `<pre>` scroll containers and resets their horizontal
+ * scroll position mid-read on mobile.
+ */
+export const MarkdownArticle = memo(function MarkdownArticle({ html, docKey }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
   const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
@@ -78,4 +86,4 @@ export function MarkdownArticle({ html, docKey }: Props) {
       </AnimatePresence>
     </>
   );
-}
+});
