@@ -4,7 +4,18 @@ import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils";
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+/**
+ * Non-modal by default. The modal scroll-lock sets `overflow: hidden` on
+ * <body>, but the global `overflow-x: clip` on <html> stops that from
+ * propagating to the viewport — body itself becomes the scroll container,
+ * so every `position: sticky` element (topbar, sidebar, TOC) snaps back to
+ * its static position at the top of the document. Mid-scroll that hides all
+ * the chrome (it looks like Zen mode) and the menu opens off-screen next to
+ * its scrolled-away trigger.
+ */
+const DropdownMenu = (props: DropdownMenuPrimitive.DropdownMenuProps) => (
+  <DropdownMenuPrimitive.Root modal={false} {...props} />
+);
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
