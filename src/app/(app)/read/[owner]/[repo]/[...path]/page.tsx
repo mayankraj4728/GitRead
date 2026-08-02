@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getDocument } from "@/lib/reader";
 import { getProgress } from "@/app/actions/progress";
 import { isBookmarked } from "@/lib/collections";
+import { getHighlights } from "@/lib/highlights";
 import { FileNotFoundError } from "@/lib/github/content.service";
 import {
   UnauthenticatedError,
@@ -52,11 +53,19 @@ export default async function DocPage({ params }: Props) {
     throw err;
   }
 
-  // Progress + bookmark keys use the app-level slug (doc.repoFullName).
-  const [saved, bookmarked] = await Promise.all([
+  // Progress + bookmark + highlight keys use the app-level slug (doc.repoFullName).
+  const [saved, bookmarked, highlights] = await Promise.all([
     getProgress(doc.repoFullName, filePath),
     isBookmarked(doc.repoFullName, filePath),
+    getHighlights(doc.repoFullName, filePath),
   ]);
 
-  return <ReaderView doc={doc} restoreTo={saved?.scrollPct ?? null} bookmarked={bookmarked} />;
+  return (
+    <ReaderView
+      doc={doc}
+      restoreTo={saved?.scrollPct ?? null}
+      bookmarked={bookmarked}
+      highlights={highlights}
+    />
+  );
 }

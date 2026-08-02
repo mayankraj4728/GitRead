@@ -664,6 +664,36 @@ body.zen .reader-main {
   font-weight: 500;
 }
 
+/* ── Text highlights ─────────────────────────────────────────── */
+/* Translucent tints via color-mix so the text (and links / inline code
+   inside a highlight) keeps its own color in both themes. Marks can span
+   multiple inline elements — round only visual ends via box-decoration. */
+.prose-reader mark.reader-highlight {
+  --hl: oklch(0.86 0.17 95); /* yellow fallback */
+  background: color-mix(in oklch, var(--hl) 38%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0.08em 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.prose-reader mark.reader-highlight:hover {
+  background: color-mix(in oklch, var(--hl) 52%, transparent);
+}
+.dark .prose-reader mark.reader-highlight {
+  background: color-mix(in oklch, var(--hl) 30%, transparent);
+}
+.dark .prose-reader mark.reader-highlight:hover {
+  background: color-mix(in oklch, var(--hl) 42%, transparent);
+}
+.prose-reader mark.reader-highlight[data-color="yellow"] { --hl: oklch(0.86 0.17 95); }
+.prose-reader mark.reader-highlight[data-color="green"]  { --hl: oklch(0.8 0.16 150); }
+.prose-reader mark.reader-highlight[data-color="blue"]   { --hl: oklch(0.75 0.13 245); }
+.prose-reader mark.reader-highlight[data-color="pink"]   { --hl: oklch(0.78 0.14 350); }
+.prose-reader mark.reader-highlight[data-color="orange"] { --hl: oklch(0.78 0.15 60); }
+
 /* ── Binary / non-previewable file placeholder ───────────────── */
 .prose-reader .binary-doc {
   margin: 2em 0;
