@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getMyRepos, getMyStarredRepos } from "@/lib/reader";
 import { getFavoriteRepoNames } from "@/lib/collections";
-import { isAuthRevoked } from "@/lib/github/client";
+import { UnauthenticatedError, isAuthRevoked } from "@/lib/github/client";
 import { purgeStaleSession } from "@/lib/purge-stale-session";
 import { RepoGrid } from "@/components/repos/repo-grid";
 import { OpenUrlBar } from "@/components/repos/open-url-bar";
@@ -13,6 +14,10 @@ export default async function ReposPage() {
   try {
     repos = await getMyRepos();
   } catch (err) {
+    // No session (logged out from another tab) → back to login. The layout's
+    // auth check doesn't re-run on client-side navigation, so the page must
+    // handle it — otherwise the error crashes the route.
+    if (err instanceof UnauthenticatedError) redirect("/");
     // Revoked/dead GitHub token → clear the stale session, back to login.
     if (isAuthRevoked(err)) await purgeStaleSession();
     throw err;

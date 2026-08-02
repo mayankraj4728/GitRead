@@ -1,5 +1,11 @@
+import { redirect } from "next/navigation";
 import { getRepoBundle } from "@/lib/reader";
-import { RepoNotFoundError, RateLimitError, TokenRevokedError } from "@/lib/github/client";
+import {
+  UnauthenticatedError,
+  RepoNotFoundError,
+  RateLimitError,
+  TokenRevokedError,
+} from "@/lib/github/client";
 import { purgeStaleSession } from "@/lib/purge-stale-session";
 import { parseRepoSegment } from "@/lib/github-url";
 import { ReaderShell } from "@/components/reader/reader-shell";
@@ -18,6 +24,8 @@ export default async function ReadLayout({ children, params }: Props) {
   try {
     bundle = await getRepoBundle(owner, name, ref);
   } catch (err) {
+    // Session died (logged out from another tab) → back to login.
+    if (err instanceof UnauthenticatedError) redirect("/");
     if (err instanceof TokenRevokedError) await purgeStaleSession();
     if (err instanceof RepoNotFoundError) return <RepoError kind="not-found" repo={`${owner}/${name}`} />;
     if (err instanceof RateLimitError) return <RepoError kind="rate-limit" />;
