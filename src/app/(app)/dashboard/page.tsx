@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getMyRepos } from "@/lib/reader";
 import { getContinueReading, getRecentlyRead } from "@/app/actions/progress";
 import { getFavoriteRepoNames, getBookmarks } from "@/lib/collections";
-import { isAuthRevoked } from "@/lib/github/client";
+import { UnauthenticatedError, isAuthRevoked } from "@/lib/github/client";
 import { purgeStaleSession } from "@/lib/purge-stale-session";
 import { SectionHeading } from "@/components/dashboard/section-heading";
 import { ContinueReading } from "@/components/dashboard/continue-reading";
@@ -22,10 +23,16 @@ function greeting(): string {
 
 export default async function DashboardPage() {
   const session = await auth();
-  const firstName = session?.user?.name?.split(" ")[0];
+  // Session died since the layout rendered (logged out from another tab) —
+  // the layout's auth check doesn't re-run on client-side navigation.
+  if (!session?.user?.id) redirect("/");
+  const firstName = session.user.name?.split(" ")[0];
 
   const [repos, cont, recent, favorites, bookmarks] = await Promise.all([
     getMyRepos().catch(async (err) => {
+      // No session → nothing to show; the redirect above usually catches
+      // this, but the session can also expire between these two calls.
+      if (err instanceof UnauthenticatedError) redirect("/");
       // Revoked/dead GitHub token → clear the stale session, back to login.
       if (isAuthRevoked(err)) await purgeStaleSession();
       return [];
