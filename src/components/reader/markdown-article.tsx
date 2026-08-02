@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useState, type RefObject } from "react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -11,6 +11,8 @@ interface Props {
   html: string;
   /** Bump to force re-enhancement when the document changes. */
   docKey: string;
+  /** Article root ref, owned by ReaderView (shared with the highlight layer). */
+  rootRef: RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -22,8 +24,8 @@ interface Props {
  * which recreates the `<pre>` scroll containers and resets their horizontal
  * scroll position mid-read on mobile.
  */
-export const MarkdownArticle = memo(function MarkdownArticle({ html, docKey }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
+export const MarkdownArticle = memo(function MarkdownArticle({ html, docKey, rootRef }: Props) {
+  const ref = rootRef;
   const { resolvedTheme } = useTheme();
   const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
 

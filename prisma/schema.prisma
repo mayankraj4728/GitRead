@@ -27,6 +27,7 @@ model User {
   recentlyRead RecentlyRead[]
   bookmarks    Bookmark[]
   favorites    Favorite[]
+  highlights   Highlight[]
 }
 
 model Account {
@@ -143,4 +144,32 @@ model Favorite {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, repoFullName])
+}
+
+/// A persistent text highlight inside a document. Anchored by the quoted
+/// text plus surrounding context (prefix/suffix) so it can be re-located
+/// even after the file's markup — or the commit — changes.
+model Highlight {
+  id           String   @id @default(cuid())
+  userId       String
+  repoFullName String
+  filePath     String
+  /// The highlighted text itself (capped at the API layer).
+  text         String   @db.Text
+  /// ~30 chars of context before/after, for re-anchoring.
+  prefix       String   @default("")
+  suffix       String   @default("")
+  /// Which occurrence of (prefix+text+suffix) in the doc, 0-based.
+  occurrence   Int      @default(0)
+  /// One of the reader's highlight palette keys (yellow/green/blue/pink/orange).
+  color        String   @default("yellow")
+  /// Optional note — seam for a future annotations feature.
+  note         String?  @db.Text
+  /// Commit sha the highlight was made at (for staleness detection).
+  sha          String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, repoFullName, filePath])
 }

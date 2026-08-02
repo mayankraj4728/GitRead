@@ -38,6 +38,8 @@ export function useSwipe({ onSwipeLeft, onSwipeRight, edgeOnly }: Handlers): voi
       const s = start.current;
       start.current = null;
       if (!s || !s.valid) return;
+      // Selecting text (dragging selection handles) must never navigate.
+      if (!window.getSelection()?.isCollapsed) return;
       const t = e.changedTouches[0];
       if (!t) return;
       const dx = t.clientX - s.x;

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Clock, FileText } from "lucide-react";
 import { MarkdownArticle } from "./markdown-article";
 import { ReadingProgressBar } from "./reading-progress-bar";
 import { ReaderToolbar } from "./reader-toolbar";
+import { HighlightLayer } from "./highlight-layer";
 import { TableOfContents } from "@/components/navigation/table-of-contents";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
@@ -12,19 +13,21 @@ import { useApplyReaderPrefs } from "@/hooks/use-apply-reader-prefs";
 import { useRepoSync } from "@/hooks/use-repo-sync";
 import { postProgress } from "@/lib/progress-client";
 import { useReaderNav } from "@/stores/reader-nav";
-import type { DocPayload } from "@/types";
+import type { DocPayload, HighlightInfo } from "@/types";
 
 interface Props {
   doc: DocPayload;
   restoreTo: number | null;
   bookmarked: boolean;
+  highlights: HighlightInfo[];
 }
 
 /** Full reading experience: toolbar, progress bar, article body, and sticky TOC. */
-export function ReaderView({ doc, restoreTo, bookmarked }: Props) {
+export function ReaderView({ doc, restoreTo, bookmarked, highlights }: Props) {
   const ids = useMemo(() => doc.toc.map((t) => t.id), [doc.toc]);
   const activeHeading = useScrollSpy(ids);
   const setCurrentPath = useReaderNav((s) => s.setCurrentPath);
+  const articleRef = useRef<HTMLDivElement>(null);
   useApplyReaderPrefs();
   useRepoSync(doc.repoFullName, doc.sha);
 
@@ -71,7 +74,19 @@ export function ReaderView({ doc, restoreTo, bookmarked }: Props) {
               </span>
             )}
           </div>
-          <MarkdownArticle html={doc.html} docKey={`${doc.repoFullName}:${doc.path}:${doc.sha}`} />
+          <MarkdownArticle
+            html={doc.html}
+            docKey={`${doc.repoFullName}:${doc.path}:${doc.sha}`}
+            rootRef={articleRef}
+          />
+          <HighlightLayer
+            rootRef={articleRef}
+            docKey={`${doc.repoFullName}:${doc.path}:${doc.sha}`}
+            repoFullName={doc.repoFullName}
+            filePath={doc.path}
+            sha={doc.sha}
+            initial={highlights}
+          />
         </article>
 
         <aside className="zen-hide hidden xl:block">

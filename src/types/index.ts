@@ -53,3 +53,25 @@ export interface ProgressInfo {
   headingId: string | null;
   updatedAt: string;
 }
+
+/** Highlight palette keys — must match the CSS `mark[data-color=…]` rules. */
+export const HIGHLIGHT_COLORS = ["yellow", "green", "blue", "pink", "orange"] as const;
+export type HighlightColor = (typeof HIGHLIGHT_COLORS)[number];
+
+/** A persisted text highlight, anchored by quote + surrounding context. */
+export interface HighlightInfo {
+  id: string;
+  repoFullName: string;
+  filePath: string;
+  /** The highlighted text itself. */
+  text: string;
+  /** ~30 chars of context before/after, used to re-locate the text. */
+  prefix: string;
+  suffix: string;
+  /** Which occurrence of (prefix+text+suffix) in the doc, 0-based. */
+  occurrence: number;
+  color: HighlightColor;
+  /** Commit sha the highlight was created at. */
+  sha: string;
+  createdAt: string;
+}
