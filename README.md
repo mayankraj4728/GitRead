@@ -62,6 +62,7 @@ repository** — just paste a URL.
 - **Bookmarks** (per document) and **Favorites** (per repository).
 - **Zen mode** — hide all chrome for pure, full-width reading.
 - **Themes** — light, dark, and system, with smooth transitions.
+- **Persistent text highlighting** — highlight any word, sentence, or paragraph with multiple colors (Yellow, Green, Blue, Pink, Orange). Highlights are saved to your account, automatically restored across sessions and devices, and can be edited or removed at any time.
 
 ### Read _any_ public repository
 
@@ -203,7 +204,7 @@ difference is the data source.
 | **2 — Navigation & power** | ✅ Shipped | ⌘K palette, search, bookmarks/favorites, reading controls, Zen |
 | **+ Read any public repo** | ✅ Shipped | Paste any GitHub URL — repo/branch/folder/file |
 | **+ PDF viewer** | ✅ Shipped | Inline PDF reading for public & private repos |
-| **5 — Performance, sync & mobile** | ✅ Shipped | Virtualized tree, hover-prefetch, real-time commit sync, mobile gestures + bottom nav, toasts, transitions, pinch-to-zoom |
+| **5 — Performance, sync & mobile** | ✅ Shipped | Virtualized tree, hover-prefetch, real-time commit sync, mobile gestures + bottom nav, toasts, transitions, pinch-to-zoom, persistent text highlighting |
 
 ---
 
