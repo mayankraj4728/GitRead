@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useEffect, useState, type RefObject } from "react";
-import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { enhanceCodeBlocks, enhanceImages, renderMermaid } from "./enhance";
@@ -26,7 +25,6 @@ interface Props {
  */
 export const MarkdownArticle = memo(function MarkdownArticle({ html, docKey, rootRef }: Props) {
   const ref = rootRef;
-  const { resolvedTheme } = useTheme();
   const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
 
   useEffect(() => {
@@ -37,12 +35,28 @@ export const MarkdownArticle = memo(function MarkdownArticle({ html, docKey, roo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docKey]);
 
-  // (Re)render Mermaid on load and whenever the theme flips.
+  // Re-render Mermaid on load and whenever the theme flips.
+  // Observing the `class` attribute on <html> instead of calling useTheme()
+  // so this component never re-renders on a theme switch — re-renders reset
+  // dangerouslySetInnerHTML and wipe the highlight <mark> elements.
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    void renderMermaid(root, resolvedTheme === "dark");
-  }, [docKey, resolvedTheme]);
+
+    const isDark = () => document.documentElement.classList.contains("dark");
+
+    void renderMermaid(root, isDark());
+
+    const observer = new MutationObserver(() => {
+      void renderMermaid(root, isDark());
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docKey]);
 
   // Close lightbox on Escape.
   useEffect(() => {
