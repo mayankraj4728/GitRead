@@ -1,4 +1,4 @@
-import { redis } from "./redis";
+import { cacheStore } from "./redis";
 
 /** Namespaced, versioned cache keys. Bump VERSION to invalidate everything. */
 const VERSION = "v1";
@@ -22,29 +22,44 @@ export const TTL = {
   content: 60 * 60 * 24, // 24 h — safe: key includes the commit sha
 } as const;
 
+// Cache instrumentation: logs HIT / MISS / ERR per key so you can see whether
+// the cache is working (in Vercel logs). On by default; set CACHE_DEBUG=false
+// to silence it.
+const CACHE_DEBUG = process.env.CACHE_DEBUG !== "false";
+function logCache(event: "HIT" | "MISS" | "ERR", key: string, detail?: string): void {
+  if (CACHE_DEBUG) console.log(`[cache] ${event} ${key}${detail ? ` — ${detail}` : ""}`);
+}
+
 /**
- * Get a JSON value from Redis, or compute + store it. Degrades to calling
- * `fn` directly when Redis is unavailable or errors — caching is best-effort.
+ * Get a JSON value from the cache, or compute + store it. Degrades to calling
+ * `fn` directly when no backend is configured or the store errors — caching is
+ * best-effort and never blocks a response.
  */
 export async function cached<T>(
   key: string,
   ttlSeconds: number,
   fn: () => Promise<T>,
 ): Promise<T> {
-  if (!redis) return fn();
+  if (!cacheStore) return fn();
 
   try {
-    const hit = await redis.get(key);
-    if (hit !== null) return JSON.parse(hit) as T;
-  } catch {
+    const hit = await cacheStore.get(key);
+    if (hit !== null) {
+      logCache("HIT", key);
+      return JSON.parse(hit) as T;
+    }
+    logCache("MISS", key);
+  } catch (err) {
+    logCache("ERR", key, err instanceof Error ? err.message : String(err));
     // fall through to compute
   }
 
   const value = await fn();
 
   try {
-    await redis.set(key, JSON.stringify(value), "EX", ttlSeconds);
-  } catch {
+    await cacheStore.set(key, JSON.stringify(value), ttlSeconds);
+  } catch (err) {
+    logCache("ERR", key, err instanceof Error ? err.message : String(err));
     // best-effort write
   }
   return value;
@@ -52,9 +67,9 @@ export async function cached<T>(
 
 /** Invalidate one or more keys (best-effort). */
 export async function invalidate(...keys: string[]): Promise<void> {
-  if (!redis || keys.length === 0) return;
+  if (!cacheStore || keys.length === 0) return;
   try {
-    await redis.del(...keys);
+    await cacheStore.del(keys);
   } catch {
     // best-effort
   }
