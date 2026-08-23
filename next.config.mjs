@@ -8,6 +8,19 @@ const nextConfig = {
   reactStrictMode: true,
   // Pin the tracing root to this project (multiple lockfiles exist on the machine).
   outputFileTracingRoot: __dirname,
+  // Next 15 defaults the client-side Router Cache for dynamic pages to 0s, so
+  // every revisit to Home / Library / a file re-runs the full server render and
+  // re-flashes the loading skeleton — navigation never feels instant. These
+  // routes are all dynamic (they read the auth cookie). Keeping them in the
+  // browser's router cache for a couple of minutes makes back/forward and
+  // re-navigation instant; content freshness is still handled server-side
+  // (sha-pinned Redis cache) and by the in-reader "new commit" sync poll.
+  experimental: {
+    staleTimes: {
+      dynamic: 120, // 2 min — instant revisits without going stale
+      static: 300, // 5 min (Next's default) — kept explicit
+    },
+  },
   images: {
     // GitHub-hosted images (avatars, raw content, camo-proxied assets).
     remotePatterns: [
