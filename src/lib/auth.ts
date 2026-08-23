@@ -1,3 +1,4 @@
+import { cache } from "react";
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -9,7 +10,7 @@ import { prisma } from "./db";
  * - `repo` scope so both public and private Markdown repos are readable.
  * - Database sessions via the Prisma adapter; we store minimal user info.
  */
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth: nextAuth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "database" },
   trustHost: true,
@@ -63,3 +64,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+/**
+ * Session lookup, memoized per request.
+ *
+ * With `session: { strategy: "database" }`, NextAuth's `auth()` hits the
+ * database on every call — and a single render calls it many times (the app
+ * layout, the page, and each server action / service that guards on the user:
+ * getMyRepos → requireOctokit, getContinueReading, getBookmarks, …). On a
+ * scale-to-zero Postgres (Neon) those redundant round trips dominate page load.
+ *
+ * React `cache` dedupes calls with the same args within one request render, so
+ * all of them collapse to a SINGLE session query. It's re-evaluated fresh on
+ * every new request, so there's no cross-request staleness.
+ *
+ * Note: this wrapper only supports the no-argument `auth()` call used
+ * throughout the app (session lookup). The un-memoized `nextAuth` is exported
+ * for any future route/middleware-wrapper usage that needs the request form.
+ */
+export const auth = cache(() => nextAuth());
+
