@@ -422,6 +422,20 @@
 }
 
 /* ── Code blocks ─────────────────────────────────────────────── */
+/* Self-hosted full-charset JetBrains Mono — used ONLY for code on small
+   screens (see the mobile block below). Unlike the system mono stack (whose
+   box-drawing coverage varies by device) and the latin-subset webfont (which
+   strips the box-drawing block entirely), this file renders letters AND
+   box-drawing/│─┌┐└┘ glyphs at the SAME 1-char cell width everywhere, so ASCII
+   diagrams keep their shape on mobile. Desktop is untouched (still SF Mono). */
+@font-face {
+  font-family: "JetBrains Mono Box";
+  src: url("/fonts/jetbrains-mono-box-400.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Bare code block (works even before/without JS enhancement): a clearly
    shaded, bordered, rounded box distinct from the page background. */
 .prose-reader pre.shiki {
@@ -610,10 +624,15 @@
   .prose-reader > pre.shiki {
     max-width: 100%;
   }
-  /* Slightly smaller code type so wide diagrams need less horizontal scrolling.
-     Monospace + preserved whitespace keep the ASCII art aligned. */
-  .prose-reader pre.shiki {
-    font-size: 0.8rem;
+  /* Render the WHOLE block in one full-charset monospace font so letters and
+     box-drawing share an identical 1-char cell — the system mono stack falls
+     back to a non-monospace font for │─┌┐ on mobile, which tears ASCII boxes
+     apart. Must override the base `!important` font-family and cover pre/code/
+     span alike; applying it to only some glyphs would re-break the grid. */
+  .prose-reader pre.shiki,
+  .prose-reader pre.shiki code,
+  .prose-reader pre.shiki span {
+    font-family: "JetBrains Mono Box", ui-monospace, monospace !important;
   }
   /* A collapsed block clipped BOTH axes (overflow: hidden), so wide lines were
      cut off with no way to reach them. Allow horizontal scrolling while still
