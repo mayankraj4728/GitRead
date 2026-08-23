@@ -599,6 +599,39 @@
   background: color-mix(in oklch, var(--color-foreground) 7%, transparent);
 }
 
+/* ── Mobile: keep wide code / ASCII-diagram blocks inside the viewport ──
+   The rounded code box must never widen the page on small screens — it stays
+   within the viewport and scrolls horizontally inside its OWN box. Scoped to
+   < lg (1024px), where the reader is full-width; the desktop reference layout
+   (>= lg, with the sidebar) is deliberately left byte-for-byte unchanged. */
+@media (max-width: 1023px) {
+  /* Never let the box — or a bare, pre-enhancement <pre> — exceed its column. */
+  .prose-reader .code-block,
+  .prose-reader > pre.shiki {
+    max-width: 100%;
+  }
+  /* Slightly smaller code type so wide diagrams need less horizontal scrolling.
+     Monospace + preserved whitespace keep the ASCII art aligned. */
+  .prose-reader pre.shiki {
+    font-size: 0.8rem;
+  }
+  /* A collapsed block clipped BOTH axes (overflow: hidden), so wide lines were
+     cut off with no way to reach them. Allow horizontal scrolling while still
+     clamping the height for the fade-out. */
+  .prose-reader .code-block.is-collapsed pre.shiki {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  /* Trim the line-number gutter to hand the code itself more room. */
+  .prose-reader .with-line-numbers .line {
+    padding: 0 0.9em;
+  }
+  .prose-reader .with-line-numbers .line::before {
+    width: 1.2rem;
+    margin-right: 1em;
+  }
+}
+
 /* ── Mermaid ─────────────────────────────────────────────────── */
 .mermaid-src {
   display: none;
