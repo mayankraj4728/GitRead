@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { cached, cacheKeys, TTL } from "@/lib/cache";
 import { requireOctokit, classifyGitHubError } from "@/lib/github/client";
 import { getRepo, getHeadSha, listRepos, listStarredRepos } from "@/lib/github/repos.service";
 import { getFileTree, findEntryDoc } from "@/lib/github/tree.service";
@@ -94,17 +95,27 @@ export const getDocument = cache(
     if (kind === "pdf") return withSlug(renderPdfDoc(path, assetCtx));
     if (kind === "binary") return withSlug(renderBinaryDoc(path, assetCtx));
 
-    let raw: string;
-    try {
-      raw = await getFileContent(owner, name, sha, path, octokit);
-    } catch (err) {
-      if (err instanceof FileNotFoundError) return withSlug(renderBinaryDoc(path, assetCtx));
-      throw err;
-    }
-
-    if (kind === "markdown") {
-      return withSlug(await renderMarkdown(raw, { repoFullName: repo.fullName, path, sha }));
-    }
-    return withSlug(await renderCodeFile(raw, path, assetCtx));
+    // Cache the fully-rendered document (Shiki highlighting is the slow step and
+    // was previously re-run on every load). Pinned to the sha, so a push emits a
+    // fresh key. Stored with the asset-level repoFullName; the app slug is
+    // stamped on afterwards so branch (~ref) links stay correct.
+    const rendered = await cached(
+      cacheKeys.doc(repo.fullName, sha, path),
+      TTL.content,
+      async () => {
+        let raw: string;
+        try {
+          raw = await getFileContent(owner, name, sha, path, octokit);
+        } catch (err) {
+          if (err instanceof FileNotFoundError) return renderBinaryDoc(path, assetCtx);
+          throw err;
+        }
+        if (kind === "markdown") {
+          return renderMarkdown(raw, { repoFullName: repo.fullName, path, sha });
+        }
+        return renderCodeFile(raw, path, assetCtx);
+      },
+    );
+    return withSlug(rendered);
   },
 );

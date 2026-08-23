@@ -12,6 +12,10 @@ export const cacheKeys = {
   tree: (fullName: string, sha: string) => `${VERSION}:tree:${fullName}:${sha}`,
   file: (fullName: string, sha: string, path: string) =>
     `${VERSION}:file:${fullName}:${sha}:${path}`,
+  // The fully-rendered document (Shiki-highlighted HTML + TOC), pinned to the
+  // sha. Caching this skips re-running the markdown/Shiki pipeline on repeat loads.
+  doc: (fullName: string, sha: string, path: string) =>
+    `${VERSION}:doc:${fullName}:${sha}:${path}`,
   searchIndex: (fullName: string, sha: string) => `${VERSION}:sindex:${fullName}:${sha}`,
 } as const;
 
