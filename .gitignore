@@ -2,7 +2,7 @@
 /node_modules
 /.pnp
 .pnp.*
-
+       
 # next.js
 /.next/
 /out/
@@ -35,3 +35,5 @@ next-env.d.ts
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+dump.rdb

@@ -27,6 +27,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@shikijs/rehype": "^1.24.4",
     "@shikijs/transformers": "^1.24.4",
+    "@upstash/redis": "^1.38.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
