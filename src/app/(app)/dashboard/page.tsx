@@ -1,16 +1,16 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { getMyRepos } from "@/lib/reader";
-import { getContinueReading, getRecentlyRead } from "@/app/actions/progress";
-import { getFavoriteRepoNames, getBookmarks } from "@/lib/collections";
-import { UnauthenticatedError, isAuthRevoked } from "@/lib/github/client";
-import { purgeStaleSession } from "@/lib/purge-stale-session";
-import { SectionHeading } from "@/components/dashboard/section-heading";
-import { ContinueReading } from "@/components/dashboard/continue-reading";
-import { RecentDocs } from "@/components/dashboard/recent-docs";
-import { RepoCard } from "@/components/repos/repo-card";
 import { OpenUrlBar } from "@/components/repos/open-url-bar";
+import {
+  ContinueReadingSection,
+  FavoritesSection,
+  RecentReposSection,
+  RecentlyReadSection,
+  BookmarksSection,
+  RepoGridSkeleton,
+  DocListSkeleton,
+} from "@/components/dashboard/sections";
 
 export const metadata = { title: "Home" };
 
@@ -28,30 +28,9 @@ export default async function DashboardPage() {
   if (!session?.user?.id) redirect("/");
   const firstName = session.user.name?.split(" ")[0];
 
-  const [repos, cont, recent, favorites, bookmarks] = await Promise.all([
-    getMyRepos().catch(async (err) => {
-      // No session → nothing to show; the redirect above usually catches
-      // this, but the session can also expire between these two calls.
-      if (err instanceof UnauthenticatedError) redirect("/");
-      // Revoked/dead GitHub token → clear the stale session, back to login.
-      if (isAuthRevoked(err)) await purgeStaleSession();
-      return [];
-    }),
-    getContinueReading(),
-    getRecentlyRead(6),
-    getFavoriteRepoNames(),
-    getBookmarks(6),
-  ]);
-
-  const recentRepos = repos.slice(0, 6);
-  const favoriteRepos = repos.filter((r) => favorites.has(r.fullName)).slice(0, 6);
-  const bookmarkDocs = bookmarks.map((b) => ({
-    repoFullName: b.repoFullName,
-    filePath: b.filePath,
-    title: b.label,
-    openedAt: b.createdAt,
-  }));
-
+  // The shell (header + OpenUrlBar) renders instantly. Each data section
+  // awaits its own fetch inside its own <Suspense> boundary, so the page
+  // streams section-by-section instead of blocking on the slowest call.
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <header className="mb-8">
@@ -63,60 +42,31 @@ export default async function DashboardPage() {
         <OpenUrlBar />
       </section>
 
-      {cont && (
-        <section className="mb-10">
-          <ContinueReading progress={cont} />
-        </section>
-      )}
+      {/* Continue reading is often quick (single DB row) — no skeleton needed;
+          it simply appears when ready and collapses to nothing if absent. */}
+      <Suspense fallback={null}>
+        <ContinueReadingSection />
+      </Suspense>
 
-      {favoriteRepos.length > 0 && (
-        <section className="mb-12">
-          <SectionHeading title="Favorites" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {favoriteRepos.map((repo) => (
-              <RepoCard key={repo.id} repo={repo} favorited />
-            ))}
-          </div>
-        </section>
-      )}
+      <Suspense fallback={null}>
+        <FavoritesSection />
+      </Suspense>
 
-      <section className="mb-12">
-        <SectionHeading title="Recent repositories" href="/repos" />
-        {recentRepos.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {recentRepos.map((repo) => (
-              <RepoCard key={repo.id} repo={repo} favorited={favorites.has(repo.fullName)} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-border p-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              No repositories found yet.{" "}
-              <Link href="/repos" className="font-medium text-accent hover:underline">
-                Browse your library →
-              </Link>
-            </p>
-          </div>
-        )}
-      </section>
+      <Suspense fallback={<RepoGridSkeleton action />}>
+        <RecentReposSection />
+      </Suspense>
 
       {/* min-w-0 lets each section shrink below its content's natural width —
           without it, long nowrap doc titles blow the grid past the phone
           viewport and the whole page zooms out unevenly. */}
       <div className="grid gap-8 lg:grid-cols-2">
-        {recent.length > 0 && (
-          <section className="mb-4 min-w-0">
-            <SectionHeading title="Recently read" />
-            <RecentDocs docs={recent} />
-          </section>
-        )}
+        <Suspense fallback={<DocListSkeleton />}>
+          <RecentlyReadSection />
+        </Suspense>
 
-        {bookmarkDocs.length > 0 && (
-          <section className="mb-4 min-w-0">
-            <SectionHeading title="Bookmarks" />
-            <RecentDocs docs={bookmarkDocs} />
-          </section>
-        )}
+        <Suspense fallback={<DocListSkeleton />}>
+          <BookmarksSection />
+        </Suspense>
       </div>
     </main>
   );
