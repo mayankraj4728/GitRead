@@ -6,6 +6,7 @@ import { MarkdownArticle } from "./markdown-article";
 import { ReadingProgressBar } from "./reading-progress-bar";
 import { ReaderToolbar } from "./reader-toolbar";
 import { HighlightLayer } from "./highlight-layer";
+import { SpeechBar } from "./speech-bar";
 import { TableOfContents } from "@/components/navigation/table-of-contents";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
@@ -13,6 +14,7 @@ import { useApplyReaderPrefs } from "@/hooks/use-apply-reader-prefs";
 import { useRepoSync } from "@/hooks/use-repo-sync";
 import { postProgress } from "@/lib/progress-client";
 import { useReaderNav } from "@/stores/reader-nav";
+import { useSpeech } from "@/stores/speech";
 import type { DocPayload, HighlightInfo } from "@/types";
 
 interface Props {
@@ -42,6 +44,12 @@ export function ReaderView({ doc, restoreTo, bookmarked, highlights }: Props) {
   // Track the active file for prev/next + command palette.
   useEffect(() => setCurrentPath(doc.path), [doc.path, setCurrentPath]);
 
+  // Stop any in-progress narration when the document changes or we leave.
+  useEffect(() => {
+    const stop = useSpeech.getState().stop;
+    return () => stop();
+  }, [doc.repoFullName, doc.path, doc.sha]);
+
   // Record this document in reading history (once per doc).
   useEffect(() => {
     postProgress({
@@ -62,6 +70,7 @@ export function ReaderView({ doc, restoreTo, bookmarked, highlights }: Props) {
             filePath={doc.path}
             title={doc.title}
             bookmarked={bookmarked}
+            articleRef={articleRef}
           />
           <div className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
@@ -95,6 +104,7 @@ export function ReaderView({ doc, restoreTo, bookmarked, highlights }: Props) {
           </div>
         </aside>
       </div>
+      <SpeechBar />
     </>
   );
 }

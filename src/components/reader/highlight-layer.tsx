@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Trash2, Volume2, ChevronsDown } from "lucide-react";
 import {
   captureSelectionAnchor,
   applyHighlight,
@@ -12,6 +12,8 @@ import {
   type HighlightAnchor,
 } from "./highlighter";
 import { createHighlight, recolorHighlight, deleteHighlight } from "@/lib/highlights-client";
+import { readSelection, readSelectionRange, readFrom } from "@/stores/speech";
+import { speechSupported } from "@/lib/speech";
 import { toast } from "@/stores/toast";
 import { HIGHLIGHT_COLORS, type HighlightColor, type HighlightInfo } from "@/types";
 import { cn } from "@/lib/utils";
@@ -26,7 +28,7 @@ const SWATCH: Record<HighlightColor, string> = {
 };
 
 type Menu =
-  | { mode: "new"; anchor: HighlightAnchor; x: number; y: number; above: boolean }
+  | { mode: "new"; anchor: HighlightAnchor; range: Range; x: number; y: number; above: boolean }
   | { mode: "edit"; id: string; color: HighlightColor; x: number; y: number; above: boolean };
 
 function menuPosition(rect: DOMRect): { x: number; y: number; above: boolean } {
@@ -92,9 +94,15 @@ export function HighlightLayer({ rootRef, docKey, repoFullName, filePath, sha, i
         const anchor = captureSelectionAnchor(root);
         if (anchor) {
           const sel = window.getSelection();
-          const rect = sel?.getRangeAt(0).getBoundingClientRect();
-          if (rect && rect.width + rect.height > 0) {
-            setMenu({ mode: "new", anchor, ...menuPosition(rect) });
+          const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+          const rect = range?.getBoundingClientRect();
+          if (range && rect && rect.width + rect.height > 0) {
+            setMenu({
+              mode: "new",
+              anchor,
+              range: range.cloneRange(),
+              ...menuPosition(rect),
+            });
             return;
           }
         }
@@ -180,6 +188,37 @@ export function HighlightLayer({ rootRef, docKey, repoFullName, filePath, sha, i
     window.getSelection()?.removeAllRanges();
   };
 
+  /** Speak just the selected text (or the clicked highlight's text). */
+  const readAloud = () => {
+    const root = rootRef.current;
+    if (!root || !menu) return;
+    if (menu.mode === "new") {
+      // Block-aware: multi-point / multi-paragraph selections breathe between blocks.
+      readSelectionRange(root, menu.range);
+    } else {
+      const text = Array.from(
+        root.querySelectorAll(`mark[data-highlight-id="${CSS.escape(menu.id)}"]`),
+        (m) => m.textContent ?? "",
+      ).join(" ");
+      readSelection(text);
+    }
+    setMenu(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  /** Speak from the selection's block through to the end of the document. */
+  const readHere = () => {
+    const root = rootRef.current;
+    if (!root || !menu) return;
+    const node =
+      menu.mode === "new"
+        ? menu.range.startContainer
+        : root.querySelector(`mark[data-highlight-id="${CSS.escape(menu.id)}"]`);
+    if (node) readFrom(root, node);
+    setMenu(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
   const remove = () => {
     const root = rootRef.current;
     if (!root || menu?.mode !== "edit") return;
@@ -237,6 +276,24 @@ export function HighlightLayer({ rootRef, docKey, repoFullName, filePath, sha, i
             >
               <Copy className="size-3.5" />
             </button>
+            {speechSupported() && (
+              <>
+                <button
+                  onClick={readAloud}
+                  aria-label="Read aloud"
+                  className="grid size-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <Volume2 className="size-3.5" />
+                </button>
+                <button
+                  onClick={readHere}
+                  aria-label="Read from here to the end"
+                  className="grid size-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <ChevronsDown className="size-3.5" />
+                </button>
+              </>
+            )}
             {menu.mode === "edit" && (
               <button
                 onClick={remove}

@@ -746,6 +746,16 @@ body.zen .reader-main {
 .prose-reader mark.reader-highlight[data-color="pink"]   { --hl: oklch(0.78 0.14 350); }
 .prose-reader mark.reader-highlight[data-color="orange"] { --hl: oklch(0.78 0.15 60); }
 
+/* ── Read-aloud: the block currently being spoken ────────────────── */
+.prose-reader .reader-speaking {
+  position: relative;
+  background: color-mix(in oklch, var(--color-accent) 12%, transparent);
+  border-radius: 4px;
+  /* Bleed the tint slightly past the text so it reads as a soft band. */
+  box-shadow: 0 0 0 0.35em color-mix(in oklch, var(--color-accent) 12%, transparent);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
 /* ── Binary / non-previewable file placeholder ───────────────── */
 .prose-reader .binary-doc {
   margin: 2em 0;

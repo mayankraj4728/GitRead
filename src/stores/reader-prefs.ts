@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { DEFAULT_VOICE, RATE_MAX, RATE_MIN, type VoiceKey } from "@/lib/speech";
 
 export type ReadingWidth = "narrow" | "normal" | "wide";
 export type ReadingFont = "serif" | "sans";
@@ -11,11 +12,15 @@ interface ReaderPrefsState {
   lineHeight: number; // 1.5 – 2.1
   width: ReadingWidth;
   font: ReadingFont;
+  voice: VoiceKey; // read-aloud voice
+  speechRate: number; // 0.5 – 2.0
   zen: boolean;
   setFontScale: (v: number) => void;
   setLineHeight: (v: number) => void;
   setWidth: (v: ReadingWidth) => void;
   setFont: (v: ReadingFont) => void;
+  setVoice: (v: VoiceKey) => void;
+  setSpeechRate: (v: number) => void;
   toggleZen: () => void;
   setZen: (v: boolean) => void;
   reset: () => void;
@@ -26,6 +31,8 @@ const DEFAULTS = {
   lineHeight: 1.8,
   width: "normal" as ReadingWidth,
   font: "serif" as ReadingFont,
+  voice: DEFAULT_VOICE,
+  speechRate: 1,
 };
 
 export const WIDTH_REM: Record<ReadingWidth, number> = {
@@ -43,6 +50,8 @@ export const useReaderPrefs = create<ReaderPrefsState>()(
       setLineHeight: (v) => set({ lineHeight: clamp(v, 1.5, 2.1) }),
       setWidth: (width) => set({ width }),
       setFont: (font) => set({ font }),
+      setVoice: (voice) => set({ voice }),
+      setSpeechRate: (v) => set({ speechRate: clamp(v, RATE_MIN, RATE_MAX) }),
       toggleZen: () => set((s) => ({ zen: !s.zen })),
       setZen: (zen) => set({ zen }),
       reset: () => set({ ...DEFAULTS }),
@@ -55,6 +64,8 @@ export const useReaderPrefs = create<ReaderPrefsState>()(
         lineHeight: s.lineHeight,
         width: s.width,
         font: s.font,
+        voice: s.voice,
+        speechRate: s.speechRate,
       }),
     },
   ),
